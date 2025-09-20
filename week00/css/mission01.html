@@ -9,31 +9,6 @@
             padding: 0;
         }
 
-        .hamburger_menu {
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            font-size: 2rem;
-            cursor: pointer;
-            display: block; /* 모바일에서만 보이도록 */
-            z-index: 1000; /* nav_container(100) 보다 크게 */
-        }
-
-        .nav_container {
-            /* 기존 스타일에서 변경 */
-            z-index: 100;
-            width: 250px; /* 사이드바의 너비 */
-            height: 100vh; /* 전체 화면 높이 */
-            position: fixed;
-            top: 0;
-            left: 0;
-            transform: translateX(-100%); /* 기본적으로 화면 왼쪽에 숨김 */
-            transition: transform 0.3s ease-in-out; /* 부드러운 전환 효과 */
-            display: block; /* Flexbox 대신 블록으로 설정 */
-            padding: 2rem;
-            border-radius: 0; /* 모바일 사이드바에서는 둥근 모서리 제거 */
-            background-color: lightblue;
-        }
 
         /* JavaScript를 통해 이 클래스를 추가하여 사이드바를 보이게 함 */
         .nav_container.open {
@@ -70,9 +45,40 @@
             background-color: transparent;
         }
 
+        /* 모바일 전용: ≤639px일 때만 사이드바 스타일 적용 */
+        @media (max-width: 639px) {
+            .hamburger_menu {
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                font-size: 2rem;
+                cursor: pointer;
+                display: block; /* 모바일에서만 보이도록 */
+                z-index: 1000; /* nav_container(100) 보다 크게 */
+            }
+
+            .nav_container {
+                /* 기존 스타일에서 변경 */
+                z-index: 100;
+                width: 250px; /* 사이드바의 너비 */
+                height: 100vh; /* 전체 화면 높이 */
+                position: fixed;
+                top: 0;
+                left: 0;
+                transform: translateX(-100%); /* 기본적으로 화면 왼쪽에 숨김 */
+                transition: transform 0.3s ease-in-out; /* 부드러운 전환 효과 */
+                display: block; /* Flexbox 대신 블록으로 설정 */
+                padding: 2rem;
+                border-radius: 0; /* 모바일 사이드바에서는 둥근 모서리 제거 */
+            }
+            .nav_container.open { transform: translateX(0); } /* 열기 */
+        }
+
+
         /* sm: 브레이크포인트 (640px 이상) */
         @media (min-width: 640px) {
             .nav_container {
+                background-color: transparent;
                 display: flex;
                 width: max-content; /* 내용물 너비에 맞게 조정 */
                 position: fixed;
