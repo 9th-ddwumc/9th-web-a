@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Navbar + Hamburger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      padding-top: 50px;
+    }
+
+    /* ===== 데스크톱 Navbar ===== */
+    .navbar {
+      width: 450px;
+      height: 60px;
+      background: #a7a7a7;
+      border-radius: 500px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .menu { display: flex; gap: 10px; }
+    .menu input { display: none; }
+    .menu label {
+      padding: 13px 25px;
+      border-radius: 9999px;
+      cursor: pointer;
+      color: white;
+      transition: background 0.3s;
+    }
+    .menu input:checked + label { background: green; color: white; }
+
+    /* ===== 햄버거 버튼 ===== */
+    #nav-toggle { display: none; }
+    .hamburger {
+      position: fixed;
+      top: 16px; right: 16px;
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: none;
+      align-items: center; justify-content: center;
+      background: #494949;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    .hamburger .bar,
+    .hamburger .bar::before,
+    .hamburger .bar::after {
+      content:"";
+      display:block;
+      width: 24px; height: 3px;
+      background:#fff;
+      border-radius: 2px;
+      position: relative;
+      transition: transform .25s, opacity .25s;
+    }
+    .hamburger .bar::before { position:absolute; top:-7px; left:0; }
+    .hamburger .bar::after  { position:absolute; top: 7px; left:0; }
+
+    /* ===== 사이드바 ===== */
+    .sidebar {
+      position: fixed;
+      top: 0; right: 0;
+      width: min(320px, 80vw);
+      height: 100vh;
+      background: #111;
+      color: #fff;
+      transform: translateX(100%);
+      transition: transform .35s cubic-bezier(.22,.61,.36,1);
+      z-index: 1000;
+
+      padding: 100px 40px; /* ← 위쪽 여백 100px 추가 */
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .sidebar input { display: none; }
+    .sidebar label {
+      font-size: 30px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: color .25s;
+    }
+    .sidebar label:hover { color: #22c55e; }
+    .sidebar input:checked + label { color: #22c55e; } /* 클릭 시 유지 */
+
+    /* ===== 토글 시 동작 ===== */
+    #nav-toggle:checked ~ .sidebar { transform: translateX(0); }
+    #nav-toggle:checked + label.hamburger .bar { transform: rotate(45deg); }
+    #nav-toggle:checked + label.hamburger .bar::before { transform: rotate(90deg) translateX(-7px); }
+    #nav-toggle:checked + label.hamburger .bar::after { opacity:0; }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 768px) {
+      .navbar { display: none; }
+      .hamburger { display: flex; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 데스크톱 Navbar -->
+  <div class="navbar">
+    <div class="menu">
+      <input type="radio" id="home" name="nav" checked><label for="home">🔥</label>
+      <input type="radio" id="Projects" name="nav"><label for="Projects">Projects</label>
+      <input type="radio" id="Members" name="nav"><label for="Members">Members</label>
+      <input type="radio" id="FAQ" name="nav"><label for="FAQ">FAQ</label>
+    </div>
+  </div>
+
+  <!-- 모바일: 햄버거 버튼 -->
+  <input type="checkbox" id="nav-toggle" />
+  <label for="nav-toggle" class="hamburger" aria-label="메뉴 열기/닫기">
+    <span class="bar"></span>
+  </label>
+
+  <!-- 모바일: 사이드바 (라디오+라벨) -->
+  <aside class="sidebar">
+    <input type="radio" id="m-home" name="m-nav" checked>
+    <label for="m-home">Home</label>
+
+    <input type="radio" id="m-projects" name="m-nav">
+    <label for="m-projects">Projects</label>
+
+    <input type="radio" id="m-members" name="m-nav">
+    <label for="m-members">Members</label>
+
+    <input type="radio" id="m-faq" name="m-nav">
+    <label for="m-faq">FAQ</label>
+  </aside>
+</body>
+</html>
