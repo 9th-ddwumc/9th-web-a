@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>Grid + Flex Layout</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { font-family: sans-serif; }
+
+  .container {
+    display: grid;
+    grid-template-rows: 80px 300px 300px 100px;
+    grid-template-columns: 1fr 1fr 1fr 1fr; /* ← 4개의 열 */
+    grid-template-areas:
+      "header menu menu menu"   /* header는 앞쪽 2칸, menu는 뒤쪽 2칸 */
+      "hero   hero   hero  hero"
+      "main   main   aside aside" /* main = 2칸, aside = 2칸 */
+      "banner banner banner banner";
+    min-height: 100vh;
+  }
+
+  header {
+    grid-area: header;
+    background:#1f2937; color:#fff; font-weight:700;
+    display:flex; justify-content:center; align-items:center;
+  }
+  nav {
+    grid-area: menu;
+    background:#ef4444; color:#fff; font-weight:700;
+    display:flex; justify-content:center; align-items:center;
+  }
+  .hero {
+    grid-area: hero;
+    background:#3b82f6; color:#fff; font-weight:700; font-size:24px;
+    display:flex; justify-content:center; align-items:center;
+  }
+  .main {
+    grid-area: main;
+    background:#1e3a8a; color:#fff; font-weight:700;
+    display:flex; justify-content:center; align-items:center;
+  }
+  .aside {
+    grid-area: aside;
+    display:grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+    background:#fff;
+  }
+  .image {
+    grid-column: 2; grid-row: 1;
+    background:#bae6fd; display:flex; justify-content:center; align-items:center; font-weight:700;
+  }
+  .extra {
+    grid-column: 2; grid-row: 2;
+    background:#34d399; display:flex; justify-content:center; align-items:center; font-weight:700;
+  }
+  .banner {
+    grid-area: banner;
+    background:#facc15; display:flex; justify-content:center; align-items:center; font-weight:700;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>HEADER</header>
+    <nav>MENU</nav>
+    <section class="hero">HERO</section>
+    <section class="main">MAIN</section>
+    <aside class="aside">
+      <div class="image">IMAGE</div>
+      <div class="extra">EXTRA</div>
+    </aside>
+    <footer class="banner">BANNER</footer>
+  </div>
+</body>
+</html>
