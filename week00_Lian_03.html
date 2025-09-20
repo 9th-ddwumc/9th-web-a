@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Todo List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fcfcfc;
+      margin: 0;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 50px;
+      color: #333;
+      text-align: center;
+    }
+    .todo-input {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .todo-input input {
+      width: 300px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    section {
+      width: 300px;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+    }
+    h2 {
+      margin-top: 0;
+      color: #555;
+      text-align: center;
+    }
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    li:last-child {
+      border-bottom: none;
+    }
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      color: white;
+    }
+    .done-btn {
+      background: #28a745;
+    }
+    .done-btn:hover {
+      background: #218838;
+    }
+    .delete-btn {
+      background: #ef4444;
+    }
+    .delete-btn:hover {
+      background: #c53030;
+    }
+    .sections {
+      display: flex;
+      justify-content:center; 
+      align-items:flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <!-- 헤더 -->
+  <header>
+    <h1>UMC Study Plan</h1>
+  </header>
+
+  <!-- 입력 영역 -->
+  <div class="todo-input">
+    <input id="todoInput" type="text" placeholder="스터디 계획을 작성해 보세요!" />
+  </div>
+
+  <!-- 해야 할 일 + 해낸 일 (좌우) -->
+  <div class="sections">
+    <section class="todo-section">
+      <h2>해야 할 일</h2>
+      <ul id="todoList" class="todo-list"></ul>
+    </section>
+
+    <section class="done-section">
+      <h2>해낸 일</h2>
+      <ul id="doneList" class="done-list"></ul>
+    </section>
+  </div>
+
+  <script>
+    const input = document.getElementById('todoInput');
+    const todoList = document.getElementById('todoList');
+    const doneList = document.getElementById('doneList');
+
+    // 새 할 일 만들기
+    function createTodoItem(text) {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = text;
+
+      const btn = document.createElement('button');
+      btn.textContent = "완료";
+      btn.className = "done-btn";
+
+      // 완료 버튼 누르면 해낸 일로 이동
+      btn.addEventListener('click', () => {
+        const doneItem = createDoneItem(text);
+        doneList.appendChild(doneItem);
+        li.remove();
+      });
+
+      li.appendChild(span);
+      li.appendChild(btn);
+      return li;
+    }
+
+    // 해낸 일 아이템 만들기
+    function createDoneItem(text) {
+      const li = document.createElement('li');
+      const span = document.createElement('span');
+      span.textContent = text;
+
+      const btn = document.createElement('button');
+      btn.textContent = "삭제";
+      btn.className = "delete-btn";
+
+      // 삭제 버튼 누르면 제거
+      btn.addEventListener('click', () => {
+        li.remove();
+      });
+
+      li.appendChild(span);
+      li.appendChild(btn);
+      return li;
+    }
+
+    // 엔터 입력 시 목록에 추가
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const text = input.value.trim();
+        if (text) {
+          const li = createTodoItem(text);
+          todoList.appendChild(li);
+          input.value = ''; // 입력창 비우기
+        }
+      }
+    });
+  </script>
+</body>
+</html>
