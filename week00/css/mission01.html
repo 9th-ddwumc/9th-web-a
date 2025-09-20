@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mission01</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .hamburger_menu {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            display: block; /* 모바일에서만 보이도록 */
+            z-index: 1000; /* nav_container(100) 보다 크게 */
+        }
+
+        .nav_container {
+            /* 기존 스타일에서 변경 */
+            z-index: 100;
+            width: 250px; /* 사이드바의 너비 */
+            height: 100vh; /* 전체 화면 높이 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translateX(-100%); /* 기본적으로 화면 왼쪽에 숨김 */
+            transition: transform 0.3s ease-in-out; /* 부드러운 전환 효과 */
+            display: block; /* Flexbox 대신 블록으로 설정 */
+            padding: 2rem;
+            border-radius: 0; /* 모바일 사이드바에서는 둥근 모서리 제거 */
+            background-color: lightblue;
+        }
+
+        /* JavaScript를 통해 이 클래스를 추가하여 사이드바를 보이게 함 */
+        .nav_container.open {
+            transform: translateX(0); /* 사이드바를 보이게 함 */
+        }
+
+        .nav_menu {
+            flex-direction: column; /* 세로 방향으로 정렬 */
+            align-items: flex-start;
+            padding: 0; /* 기존 패딩 제거 */
+            margin-top: 5rem; /* 햄버거 메뉴와 간격 두기 */
+            list-style: none;
+            background-color: transparent; /* 메뉴바 배경색 제거 */
+            backdrop-filter: none; /* 블러 효과 제거 */
+        }
+
+        .nav_menu li.active a{
+            color: #28a745;
+        }
+
+        .nav_menu li a {
+            display: block;
+            transition: all 0.3s ease; /* transition-all */
+            text-decoration: none; /* 파란색 링크 표시 없앰 */
+            padding: 0.75rem 1.5rem; /* px-6 py-3 */
+            color: rgb(0, 0, 0);
+        }
+   
+        .nav_menu li a:hover{
+            color: #d1d5db;
+        }
+
+        .fire_logo {
+            background-color: transparent;
+        }
+
+        /* sm: 브레이크포인트 (640px 이상) */
+        @media (min-width: 640px) {
+            .nav_container {
+                display: flex;
+                width: max-content; /* 내용물 너비에 맞게 조정 */
+                position: fixed;
+                left: 50%; /* 왼쪽에서 50% 위치에 배치 */
+                transform: translateX(-50%); /* 자신의 너비의 50%만큼 왼쪽으로 이동시켜 정확히 가운데 정렬 */
+                padding: 0.5rem;
+                border-radius: 50px;
+            }
+
+            .hamburger_menu {
+                display: none; /* 데스크탑에서는 숨김 */
+            }
+
+            .nav_menu {
+                flex-direction: row;
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                backdrop-filter: blur(12px);
+
+                /* 추가/수정된 속성 */
+                background-color: #a0a0a0; /* 회색 배경 추가 */
+                padding: 0.5rem; /* 기존 nav_container의 padding 값 적용 */
+                border-radius: 50px; /* 둥근 모서리 추가 */
+
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                list-style: none; /* 불릿 기호 제거 */
+                margin: 0;
+            }
+
+            .nav_menu li.active{
+                background-color: #28a745;
+                border-radius: 9999px; /* rounded-full */
+            }
+
+            .nav_menu li a {
+                display: block;
+                transition: all 0.3s ease; /* transition-all */
+                text-decoration: none; /* 파란색 링크 표시 없앰 */
+                padding: 0.75rem 1.5rem; /* px-6 py-3 */
+                color: white;
+            }
+
+            .nav_menu li.active a{
+                color: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hamburger_menu">
+        ☰
+    </div>
+
+    <nav class="nav_container">
+        <ul class="nav_menu" aria-label="주 메뉴">
+            <li class="active">
+                <a class="fire-icon" aria-label="홈" href="#">🔥</a>
+            </li>
+            <li>
+                <a href="#">Projects</a>
+            </li>
+            <li>
+                <a href="#">Members</a>
+            </li>
+            <li>
+                <a href="#">FAQ</a>
+            </li>
+        </ul>
+    </nav>
+
+    <script>
+        // querySelectorAll을 사용해 모든 li 요소를 선택
+        const navItems = document.querySelectorAll('.nav_menu li');
+        const navContainer = document.querySelector('.nav_container');
+        const hamburger = document.querySelector('.hamburger_menu');
+
+        // 햄버거 메뉴 클릭 시 사이드바 토글
+        hamburger.addEventListener('click', () => {
+            navContainer.classList.toggle('open');
+
+            if (navContainer.classList.contains('open')) {
+                hamburger.textContent = "✖"; // 닫기 아이콘
+            } else {
+                hamburger.textContent = "☰"; // 햄버거 아이콘
+            }
+        });
+
+        navItems.forEach(item => {
+            item.addEventListener('click', (event) => {
+                // 'active' 클래스를 제거할 때, 모든 li 요소에 대해 반복
+                navItems.forEach(li => {
+                    li.classList.remove('active');
+                });
+                // 클릭한 요소에만 'active' 클래스 추가
+                event.currentTarget.classList.add('active');
+
+                // 메뉴 항목 클릭 시 사이드바 닫기 (선택 사항)
+                navContainer.classList.remove('open');
+            });
+        });
+    </script>
+</body>
+</html>
