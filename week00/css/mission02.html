@@ -4,84 +4,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>mission02</title>
   <style>
-    *{box-sizing:border-box}
-    .container{
-      display:flex; flex-direction:column; min-height:100vh;
-      margin:0; padding:0; background:#fff; text-align:center;
+    /* reset */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-weight: 600; background:#fff; }
+
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 0 16px 16px;
     }
 
-    /* 상단 헤더는 flex */
-    .header{display:flex; height:100px}
-    .header--header{
-      width:120px; background:#0f2438; color:#fff;
-      display:flex; justify-content:center; align-items:center;
-      font-weight:600;
-    }
-    .header--menu{
-      flex:1; background:#e74c3c; color:#fff;
-      display:flex; justify-content:center; align-items:center;
-      font-weight:600;
-      margin:0; padding:0;
-    }
+    /* HEADER (flex) */
+    .header { display: flex; height: 100px; gap: 8px; padding-top: 16px; }
+    .header--header,
+    .header--menu { display:flex; align-items:center; justify-content:center; color:#fff; }
+    .header--header { width: 120px; background:#0f2438; }
+    .header--menu   { flex: 1;    background:#e74c3c; }
 
     /* HERO */
-    .card{
+    .card {
       background:#4b82d3; color:#fff;
-      display:flex; justify-content:center; align-items:center;
-      flex:0 0 320px;   /* 사진처럼 큼직하게 */
-      font-weight:600; letter-spacing:1px;
+      min-height: 180px;           /* 필요하면 200~320px로 */
+      display:flex; align-items:center; justify-content:center;
+      border-radius: 8px; padding: 16px;
     }
 
-    /* 본문은 grid */
-    .main{
-      flex:1;
-      display:grid;
-      grid-template-columns: 2fr 1fr 1fr;  /* MAIN | (WHITE) | 오른쪽 열 */
-      grid-template-rows: 1fr 1fr;         /* 오른쪽 열을 2등분 */
+    /* MAIN (grid) */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 16px;
     }
+    .main > * { display:flex; align-items:center; justify-content:center; }
 
-    .main--main{
-      grid-column:1; grid-row:1 / span 2;  /* 왼쪽 큰 영역이 세로로 2칸 차지 */
-      background:#2c3e50; color:#fff;
-      display:flex; justify-content:center; align-items:center; font-weight:600;
-    }
+    .main--main  { grid-column:1; grid-row:1 / span 2; background:#2c3e50; color:#fff; }
+    .main--gap   { grid-column:2; grid-row:1 / span 2; background:#fff; }
+    .main--img   { grid-column:3; grid-row:1;          background:#cfeeee; }
+    .main--extra { grid-column:3; grid-row:2;          background:#2ecc71; }
 
-    /* 가운데 흰색 ‘칸’ (실제 셀) */
-    .main--gap{
-      grid-column:2; grid-row:1 / span 2;
-      background:#fff;                       /* 사진의 흰색 기둥 */
-    }
-
-    .main--img{
-      grid-column:3; grid-row:1;
-      background:#cfeeee;                    /* 밝은 하늘색 톤 */
-      display:flex; justify-content:center; align-items:center; font-weight:600;
-    }
-
-    .main--extra{
-      grid-column:3; grid-row:2;
-      background:#2ecc71;
-      display:flex; justify-content:center; align-items:center; font-weight:600;
-    }
-
-    .footer{
-      height:100px; background:#f6c358; color:#000;
-      display:flex; justify-content:center; align-items:center; font-weight:600;
-    }
+    .footer { height:100px; background:#f6c358; color:#000; display:flex; align-items:center; justify-content:center; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <header class="header--header">HEADER</header>
-      <menu class="header--menu">MENU</menu>
+      <nav class="header--menu">MENU</nav> <!-- menu 대신 nav -->
     </div>
 
     <div class="card">HERO</div>
 
     <div class="main">
       <main class="main--main">MAIN</main>
-      <div class="main--gap" aria-hidden="true"></div>   <!-- ← 흰색 칸 -->
+      <div class="main--gap" aria-hidden="true"></div>
       <div class="main--img">IMAGE</div>
       <div class="main--extra">EXTRA</div>
     </div>
