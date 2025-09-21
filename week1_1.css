@@ -1,0 +1,121 @@
+/* 기본 스타일 초기화 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 [8] */
+}
+
+/* Body 스타일: 중앙 정렬 */
+body {
+    font-family: 'Roboto', sans-serif; 
+    display: flex;
+    justify-content: center; /* 가로 중앙 정렬 [10] */
+    align-items: center;   /* 세로 중앙 정렬 [10] */
+    height: 100vh;         /* 전체 높이 확보 [10] */
+    background-color: #f0f0f0; 
+}
+
+/* Todo 전체 컨테이너 */
+.todo__container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px; /* 둥근 모서리 [10] */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 그림자 [10] */
+    width: 350px; /* 너비 고정 [10] */
+    text-align: center;
+}
+
+/* 헤더 스타일 */
+.todo__container__header {
+    font-size: 24px;
+    margin-bottom: 16px; 
+}
+
+/* 폼 스타일 */
+.todo__container__form {
+    display: flex; /* 가로 정렬 [10] */
+    gap: 10px; /* 요소 간 간격 [10] */
+    margin-bottom: 20px;
+}
+
+/* 입력 인풋 스타일 */
+.todo__container__input {
+    flex: 1; /* 남은 공간 모두 차지 [11] */
+    padding: 10px;
+    border: 1px solid #CCC;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* 할 일 추가 버튼 */
+.todo__container__button {
+    background-color: #28a745; /* 초록색 [11] */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer; /* 포인터 커서 [11] */
+    border-radius: 6px;
+    transition: background-color 0.3s; /* 호버 시 부드러운 전환 [11] */
+}
+
+/* 버튼 호버 효과 */
+.todo__container__button:hover {
+    background-color: #218838; 
+}
+
+/* 렌더링 영역 컨테이너 */
+.render__container {
+    display: flex;
+    justify-content: space-between; /* 좌우로 찢어지게 배치 [12] */
+    gap: 20px;
+}
+
+/* 각 섹션 (할 일/완료) */
+.render__container__section {
+    flex: 1; /* 공간 균등하게 배분 [12] */
+    text-align: left;
+}
+
+/* 섹션 타이틀 */
+.render__container__title {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* 리스트 스타일 제거 */
+.render__container__list {
+    list-style: none; /* 리스트 앞의 점 제거 [13] */
+    padding: 0;
+    margin: 0;
+}
+
+/* 개별 할 일 아이템 */
+.render__container__item {
+    display: flex;
+    justify-content: space-between; /* 텍스트와 버튼을 좌우 끝으로 배치 [13] */
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #DDD; 
+    background-color: white;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+/* 아이템 내부 버튼 (완료/삭제) */
+.render__container__item__button {
+    /* 기본 버튼 스타일 */
+    background-color: #DC3545; /* 삭제(빨간색) 기준 [14] */
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+    font-size: 12px;
+}
+
+/* 아이템 내부 버튼 호버 */
+.render__container__item__button:hover {
+    background-color: green; 
+}
