@@ -18,10 +18,10 @@ const renderTask = (): void => {
     todoList.innerHTML = '';
     doneList.innerHTML = '';
 
-    todos.forEach((todo): void => {{
+    todos.forEach((todo): void => {
         const li = createTodoElement(todo, false);
         todoList.appendChild(li);
-    }})
+    })
 
     doneTasks.forEach((todo): void => {
         const li = createTodoElement(todo, true);
