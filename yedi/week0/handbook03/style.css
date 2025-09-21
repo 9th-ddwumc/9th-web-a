@@ -46,8 +46,9 @@ h1 {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 500px; 
-    flex-shrink: 0; 
+    width: 100%;       /* 고정값 대신 */
+    max-width: 500px;  /* 최대 500px로 제한 */
+    flex-shrink: 0;
 }
 
 .todo-column h2 {
