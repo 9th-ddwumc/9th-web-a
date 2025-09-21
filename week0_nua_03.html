@@ -12,21 +12,24 @@
             box-sizing: border-box;
         }
 
-        body {
+        /* app (전체 배경 및 body 역할) */
+        .app {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #e1e7ed; /* 이미지와 유사한 밝은 회색 배경 */
+            background-color: #e1e7ed;
             display: flex;
             justify-content: center;
             padding-top: 80px;
+            min-height: 100vh; /* 전체 화면 채우기 */
         }
 
-        /* 전체 앱 컨테이너 */
+        /* app-container (중앙 컨테이너) */
         .app-container {
             width: 600px;
             max-width: 90%;
         }
 
-        header h1 {
+        /* app-header__title (앱 제목) */
+        .app-header__title {
             text-align: center;
             margin-bottom: 30px;
             font-size: 32px;
@@ -34,39 +37,42 @@
             color: #212529;
         }
 
-        /* 입력창 스타일 */
-        .input-section #todo-input {
+        /* input-form__field (입력창) */
+        .input-form__field {
             width: 100%;
             padding: 12px 15px;
             font-size: 16px;
-            border: 2px solid #000000; /* 더 옅은 테두리 */
+            border: 2px solid #000000;
             outline: none;
             color: #495057;
         }
-        .input-section #todo-input::placeholder {
-            color: #adb5bd; /* 플레이스홀더 텍스트 색상 */
+
+        .input-form__field::placeholder {
+            color: #adb5bd;
         }
-        /* 구분선 */
+
+        /* divider (구분선) */
         .divider {
             border: none;
             height: 1px;
             background-color: #d1d3d5;
             margin: 30px 0;
         }
-        
-        /* 리스트 컨테이너 (Flexbox 레이아웃) */
+
+        /* lists-container (리스트 그룹 컨테이너) */
         .lists-container {
             display: flex;
             justify-content: space-between;
             gap: 40px;
         }
 
-        .todo-section, .done-section {
+        /* list-section (각 리스트 섹션) */
+        .list-section {
             width: 50%;
         }
 
-        /* "해야 할 일", "해낸 일" 제목 */
-        h2 {
+        /* list-section__heading (섹션 제목) */
+        .list-section__heading {
             text-align: center;
             font-size: 16px;
             font-weight: 500;
@@ -75,62 +81,76 @@
             border-bottom: 2px solid #a4b7ca;
         }
 
-        ul {
+        /* list-group (ul 요소) */
+        .list-group {
             list-style-type: none;
         }
 
-        li {
+        /* list-group__item (li 요소) */
+        .list-group__item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0; 
+            padding: 15px 0;
             font-size: 16px;
             color: #000000;
-            border-bottom: 3px solid #a4b7ca; 
+            border-bottom: 3px solid #a4b7ca;
         }
 
-        li span {
+        /* list-group__text (할 일 텍스트) */
+        .list-group__text {
             flex-grow: 1;
         }
 
-        button {
+        /* list-group__button (리스트 항목 버튼) */
+        .list-group__button {
             border: none;
             font-size: 12px;
             font-weight: 500;
             padding: 5px 10px;
-            background-color:  #a4b7ca;
+            background-color: #a4b7ca;
             color: #000000;
             transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        
+        /* list-group__button--complete (완료 버튼 Modifier) */
+        .list-group__button--complete:hover {
+            background-color: #79a6d0;
+        }
+        
+        /* list-group__button--delete (삭제 버튼 Modifier) */
+        .list-group__button--delete:hover {
+            background-color: #e57373;
         }
     </style>
 </head>
-<body>
+<body class="app">
     <div class="app-container">
         <header>
-            <h1>UMC Study Plan</h1>
+            <h1 class="app-header__title">UMC Study Plan</h1>
         </header>
 
         <hr class="divider">
 
-        <div class="input-section">
-            <input type="text" id="todo-input" placeholder="스터디 계획을 작성해보세요!">
+        <div class="input-form">
+            <input type="text" id="todo-input" class="input-form__field" placeholder="스터디 계획을 작성해보세요!">
         </div>
 
         <main class="lists-container">
-            <section class="todo-section">
-                <h2>해야 할 일</h2>
-                <ul id="todo-list">
+            <section class="list-section list-section--todo">
+                <h2 class="list-section__heading">해야 할 일</h2>
+                <ul id="todo-list" class="list-group">
                     </ul>
             </section>
 
-            <section class="done-section">
-                <h2>해낸 일</h2>
-                <ul id="done-list">
+            <section class="list-section list-section--done">
+                <h2 class="list-section__heading">해낸 일</h2>
+                <ul id="done-list" class="list-group">
                     </ul>
             </section>
         </main>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const todoInput = document.getElementById('todo-input');
@@ -144,37 +164,47 @@
                 todoList.innerHTML = '';
                 doneList.innerHTML = '';
 
+                // Todos 렌더링
                 todos.forEach((todo, index) => {
                     const li = document.createElement('li');
+                    li.className = 'list-group__item'; // BEM 클래스 적용
+
                     const textNode = document.createElement('span');
                     textNode.textContent = todo;
+                    textNode.className = 'list-group__text'; // BEM 클래스 적용
                     li.appendChild(textNode);
-                    
+
                     const completeBtn = document.createElement('button');
                     completeBtn.textContent = '완료';
-                    completeBtn.className = 'complete-btn';
+                    // BEM 클래스: Block__Element--Modifier
+                    completeBtn.className = 'list-group__button list-group__button--complete'; 
                     completeBtn.dataset.index = index;
                     li.appendChild(completeBtn);
 
                     todoList.appendChild(li);
                 });
 
+                // Dones 렌더링
                 dones.forEach((done, index) => {
                     const li = document.createElement('li');
+                    li.className = 'list-group__item'; // BEM 클래스 적용
+
                     const textNode = document.createElement('span');
                     textNode.textContent = done;
+                    textNode.className = 'list-group__text'; // BEM 클래스 적용
                     li.appendChild(textNode);
 
                     const deleteBtn = document.createElement('button');
                     deleteBtn.textContent = '삭제';
-                    deleteBtn.className = 'delete-btn';
+                    // BEM 클래스: Block__Element--Modifier
+                    deleteBtn.className = 'list-group__button list-group__button--delete'; 
                     deleteBtn.dataset.index = index;
                     li.appendChild(deleteBtn);
-                    
+
                     doneList.appendChild(li);
                 });
             };
-            
+
             const saveToLocalStorage = () => {
                 localStorage.setItem('todos', JSON.stringify(todos));
                 localStorage.setItem('dones', JSON.stringify(dones));
@@ -191,16 +221,16 @@
             };
 
             const handleListClick = (e) => {
-                if (e.target.classList.contains('complete-btn')) {
-                    const index = e.target.dataset.index;
+                if (e.target.classList.contains('list-group__button--complete')) {
+                    const index = Number(e.target.dataset.index);
                     const completedTask = todos.splice(index, 1)[0];
                     dones.push(completedTask);
                     saveToLocalStorage();
                     render();
                 }
-                
-                if (e.target.classList.contains('delete-btn')) {
-                    const index = e.target.dataset.index;
+
+                if (e.target.classList.contains('list-group__button--delete')) {
+                    const index = Number(e.target.dataset.index);
                     dones.splice(index, 1);
                     saveToLocalStorage();
                     render();
@@ -212,7 +242,7 @@
                     addTodo();
                 }
             });
-            
+
             todoList.addEventListener('click', handleListClick);
             doneList.addEventListener('click', handleListClick);
 
