@@ -19,13 +19,13 @@ body {
     cursor: pointer;
     display: block;
     z-index: 200;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
+    background-color: transparent; /* FIX: 배경색 제거  */
+    color: #333; /* FIX: 아이콘 색상을 검은색으로 변경  */
     width: 50px;
     height: 50px;
     border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border: none; /* FIX: border 제거 */
+    box-shadow: none; /* FIX: 그림자 제거 */
     display: flex;
     align-items: center;
     justify-content: center;
