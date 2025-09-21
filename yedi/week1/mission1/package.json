@@ -1,0 +1,21 @@
+{
+  "name": "week01",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "lite-server",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "concurrently \"npm run watch\" \"npm run dev\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "lite-server": "^2.6.1",
+    "typescript": "^5.9.2"
+  }
+}
