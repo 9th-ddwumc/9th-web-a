@@ -34,7 +34,7 @@
     }
     .menu input:checked + label { background: green; color: white; }
 
-    /* ===== 햄버거 버튼 ===== */
+    /* ===== 햄버거 / X 버튼 ===== */
     #nav-toggle { display: none; }
     .hamburger {
       position: fixed;
@@ -46,20 +46,15 @@
       background: #494949;
       cursor: pointer;
       z-index: 1001;
+      font-size: 26px;   /* 아이콘 크기 */
+      color: #fff;
     }
-    .hamburger .bar,
-    .hamburger .bar::before,
-    .hamburger .bar::after {
-      content:"";
-      display:block;
-      width: 24px; height: 3px;
-      background:#fff;
-      border-radius: 2px;
-      position: relative;
-      transition: transform .25s, opacity .25s;
-    }
-    .hamburger .bar::before { position:absolute; top:-7px; left:0; }
-    .hamburger .bar::after  { position:absolute; top: 7px; left:0; }
+    /* 기본은 ☰ 보이고, ✖ 숨김 */
+    .hamburger .icon-close { display: none; }
+    .hamburger .icon-open { display: block; }
+    /* 체크되면 ☰ 숨기고 ✖ 보이기 */
+    #nav-toggle:checked + label.hamburger .icon-open { display: none; }
+    #nav-toggle:checked + label.hamburger .icon-close { display: block; }
 
     /* ===== 사이드바 ===== */
     .sidebar {
@@ -73,7 +68,7 @@
       transition: transform .35s cubic-bezier(.22,.61,.36,1);
       z-index: 1000;
 
-      padding: 100px 40px; /* ← 위쪽 여백 100px 추가 */
+      padding: 100px 40px; /* ← 위쪽 여백 */
       display: flex;
       flex-direction: column;
       gap: 22px;
@@ -91,9 +86,6 @@
 
     /* ===== 토글 시 동작 ===== */
     #nav-toggle:checked ~ .sidebar { transform: translateX(0); }
-    #nav-toggle:checked + label.hamburger .bar { transform: rotate(45deg); }
-    #nav-toggle:checked + label.hamburger .bar::before { transform: rotate(90deg) translateX(-7px); }
-    #nav-toggle:checked + label.hamburger .bar::after { opacity:0; }
 
     /* ===== 반응형 ===== */
     @media (max-width: 768px) {
@@ -113,13 +105,14 @@
     </div>
   </div>
 
-  <!-- 모바일: 햄버거 버튼 -->
+  <!-- 모바일: 햄버거 / X 버튼 -->
   <input type="checkbox" id="nav-toggle" />
   <label for="nav-toggle" class="hamburger" aria-label="메뉴 열기/닫기">
-    <span class="bar"></span>
+    <span class="icon-open">☰</span>  <!-- 햄버거 -->
+    <span class="icon-close">✖</span> <!-- 닫기 -->
   </label>
 
-  <!-- 모바일: 사이드바 (라디오+라벨) -->
+  <!-- 모바일: 사이드바 -->
   <aside class="sidebar">
     <input type="radio" id="m-home" name="m-nav" checked>
     <label for="m-home">Home</label>
