@@ -1,5 +1,3 @@
-// types.ts
-
 import type { ReactNode, ComponentType } from 'react';
 
 export interface LinkProps {
@@ -14,7 +12,6 @@ export interface RouteProps {
     component: ComponentType<unknown>;
 }
 
-// For Router.tsx
 export interface RoutesProps {
   children: ReactNode;
 }
