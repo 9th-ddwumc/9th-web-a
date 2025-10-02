@@ -7,9 +7,10 @@ const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p/w300';
 
 interface MovieCardProps {
   movie: Movie;
+  onClick: () => void; // ✅ MoviePage에서 넘겨주는 클릭 이벤트 핸들러 추가
 }
 
-export default function MovieCard({ movie }: MovieCardProps) {
+export default function MovieCard({ movie, onClick }: MovieCardProps) {
   // 마우스 오버 상태 관리
   const [isHovered, setIsHovered] = useState(false);
   
@@ -26,6 +27,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
                  transition transform duration-300 hover:scale-[1.02]" // 호버 애니메이션
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
     >
       {/* 1. 영화 포스터 이미지 */}
       <img
