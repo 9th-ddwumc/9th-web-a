@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple SPA</title>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+    </nav>
+    <div id="root"></div>
+
+    <script>
+        const root = document.getElementById('root');
+
+        // 각 URL 경로에 맞는 내용을 정의
+        const routes = {
+            '/': '<h1>Home 페이지</h1><p>메인 페이지입니다.</p>',
+            '/about': '<h1>About 페이지</h1><p>소개 페이지입니다.</p>'
+        };
+
+        // URL이 변경될 때 해당 경로의 콘텐츠를 렌더링하는 함수
+        const render = (path) => {
+            root.innerHTML = routes[path] || '<h1>404 Not Found</h1>';
+        };
+
+        // 네비게이션 링크 클릭 이벤트 처리
+        document.querySelector('nav').addEventListener('click', (e) => {
+            // a 태그 클릭 시에만 동작
+            if (e.target.tagName === 'A') {
+                e.preventDefault(); // a 태그의 기본 동작(페이지 이동)을 막음
+                const path = e.target.getAttribute('href');
+
+                // history.pushState()로 URL만 변경(새로고침 없음)
+                history.pushState(null, null, path);
+                render(path); // 변경된 URL에 맞는 콘텐츠 렌더링
+            }
+        });
+
+        // 뒤로가기/앞으로가기 버튼 처리
+        window.addEventListener('popstate', () => {
+            render(window.location.pathname);
+        });
+
+        // 첫 페이지 로드 시 현재 URL에 맞는 콘텐츠 렌더링
+        render(window.location.pathname);
+    </script>
+</body>
+</html>
