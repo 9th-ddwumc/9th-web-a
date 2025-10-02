@@ -25,3 +25,42 @@ export interface MovieResponse {
   total_pages: number;
   total_results: number;
 }
+
+
+// --- 1. 타입 정의 ---
+
+export interface Genre { 
+  id: number; 
+  name: string; 
+}
+
+export interface MovieDetail {
+  id: number;
+  title: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null; // 배경 이미지 추가
+  release_date: string;
+  vote_average: number;
+  genres: Genre[];
+  runtime: number | null;
+}
+
+export interface Cast {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
+}
+
+export interface Crew {
+  id: number;
+  name: string;
+  job: string; // "Director", "Writer" 등으로 사용
+  profile_path: string | null;
+}
+
+export interface CreditsResponse {
+  cast: Cast[];
+  crew: Crew[];
+}
