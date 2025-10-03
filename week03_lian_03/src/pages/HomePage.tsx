@@ -28,7 +28,7 @@ const HomePage = () => {
 
       {/* 푸터  */}
       <footer className="text-center text-sm text-gray-500 py-6 border-t border-gray-800">
-        © Hailee
+        © Lian
       </footer>
     </div>
   );

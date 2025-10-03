@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Movie } from "../types/movie";
+import type { Movie } from "../types/movie";
 import { useNavigate } from "react-router-dom";
 
 // movie: Movie 타입을 가진 객체 (영화 한 편에 대한 정보)
