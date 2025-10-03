@@ -1,7 +1,6 @@
 // 각각의 영화 카드를 UI로 구성, hover 시 상세 정보 표시
 import { useState } from "react";
-import { Movie } from "../types/movie";
-
+import type { Movie } from "../types/movie";
 // props로 받을 데이터의 타입을 명확히 지정
 interface MovieCardProps {
   movie: Movie;

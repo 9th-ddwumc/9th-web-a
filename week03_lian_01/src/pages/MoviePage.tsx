@@ -1,8 +1,9 @@
 // 인기 영화 목록을 API로 가져와서 화면에 뿌리는 역할
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Movie, MovieResponse } from "../types/movie";
+import type { Movie, MovieResponse } from "../types/movie";
 import MovieCard from "../components/MovieCard";
+
 
 export default function MoviePage() {
   // 영화 배열 상태 선언
