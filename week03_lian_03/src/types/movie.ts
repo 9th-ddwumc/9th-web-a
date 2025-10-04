@@ -1,4 +1,3 @@
-// 영화 데이터 타입 정의 파일 (Movie, MovieResponse 등)
 export type Movie = {
   adult: boolean;
   backdrop_path: string;
@@ -23,29 +22,44 @@ export type MovieResponse = {
   total_results: number;
 };
 
-export interface MovieDetail {
+export type Genre = { id: number; name: string };
+
+export type MovieDetail = {
   id: number;
   title: string;
-  tagline: string;
   overview: string;
   release_date: string;
   runtime: number;
   vote_average: number;
   vote_count: number;
-  poster_path: string;
-  genres: { id: number; name: string }[];
-}
+  poster_path: string | null;
+  backdrop_path: string | null;
+  genres: Genre[];
+  tagline?: string;   // ⭐ 추가
+};
 
-export interface MovieCredits {
-  cast: {
-    cast_id: number;
-    name: string;
-    character: string;
-    profile_path: string | null;
-  }[];
-  crew: {
-    job: string;
-    name: string;
-    profile_path: string | null;
-  }[];
-}
+export type CastMember = {
+  id: number;
+  name: string;
+  character?: string;
+  profile_path: string | null;
+  order?: number;
+  cast_id?: number;   // ⭐ 추가
+};
+
+export type CrewMember = {
+  id: number;
+  name: string;
+  job?: string;        // "Director" 등
+  department?: string; // "Directing" 등
+  profile_path: string | null;
+};
+
+export type CreditsResponse = {
+  id: number;
+  cast: CastMember[];
+  crew: CrewMember[];
+};
+
+// MovieCredits는 CreditsResponse와 동일한 타입으로 사용
+export type MovieCredits = CreditsResponse;   // ⭐ 추가
