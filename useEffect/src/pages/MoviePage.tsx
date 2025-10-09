@@ -48,15 +48,15 @@ export default function MoviePage() {
   return (
     <>
     <div className='flex  items-center justify-center gap-6 mt-5'>
-      <button className='bg-black text-white px-6 -py-3 rounded-lg shadow-md
-      hover:bg-white transition-all duration-300 disabled:bh-gray-300
-      cursor-pointer disabled:cusor-not-allowed'
+      <button className='bg-black text-white px-6 py-3 rounded-lg shadow-md
+      hover:bg-white transition-all duration-300 disabled:bg-gray-300
+      cursor-pointer disabled:cursor-not-allowed'
        disabled={page===1}
        onClick={()=> setPage((prev)=> prev-1)}>
         {'<'}
       </button>
       <span>{page} 페이지</span>
-      <button className='bg-black text-white px-6 -py-3 rounded-lg shadow-md
+      <button className='bg-black text-white px-6 py-3 rounded-lg shadow-md
       hover:bg-white transition-all duration-300 cursor-pointer' 
        onClick={()=> setPage((prev)=> prev+1)}>
         {'>'}
