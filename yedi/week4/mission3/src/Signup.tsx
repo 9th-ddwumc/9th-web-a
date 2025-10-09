@@ -354,7 +354,7 @@ function Signup() {
                       padding: '4px'
                     }}
                   >
-                    {showPasswordConfirm ? '👁️' : '👁️‍🗨️'}
+                    {}
                   </button>
                   {passwordForm.formState.errors.passwordConfirm && (
                     <p style={{ 
