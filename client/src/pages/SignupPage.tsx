@@ -1,18 +1,41 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import StrengthMeter from "../components/StrengthMeter";
 import { passwordStrength } from "../utils/validators";
 
 type Step = 1 | 2 | 3;
 
-interface SignupForm {
-  email: string;
-  password: string;
-  confirm: string;
-  nickname: string;
-  agree: boolean;
-}
+/** Zod 스키마: 이메일/비번/확인/닉네임/약관 */
+const signupSchema = z
+  .object({
+    email: z
+      .string()
+      .min(1, "이메일을 입력해주세요.")
+      .email("올바른 이메일 형식을 입력해주세요."),
+    password: z
+      .string()
+      .min(8, "비밀번호는 최소 8자 이상이어야 합니다.")
+      .refine((v) => passwordStrength(v) >= 3, {
+        message: "영문/숫자/특수문자 중 2가지 이상을 포함해주세요.",
+      }),
+    confirm: z.string().min(1, "비밀번호 확인을 입력해주세요."),
+    nickname: z
+      .string()
+      .min(1, "닉네임을 입력해주세요.")
+      .min(2, "닉네임은 2자 이상이어야 합니다."),
+    agree: z
+      .boolean()
+      .refine((v) => v, { message: "약관에 동의해야 가입할 수 있습니다." }),
+  })
+  .refine((data) => data.password === data.confirm, {
+    path: ["confirm"],
+    message: "비밀번호가 일치하지 않습니다.",
+  });
+
+type SignupForm = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const nav = useNavigate();
@@ -24,9 +47,10 @@ export default function SignupPage() {
     register,
     handleSubmit,
     watch,
-    formState: { errors }, // ⬅️ isValid, touchedFields 제거
+    formState: { errors },
   } = useForm<SignupForm>({
     mode: "onBlur",
+    resolver: zodResolver(signupSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -43,46 +67,44 @@ export default function SignupPage() {
   const agree = watch("agree");
 
   const onSubmit = async (data: SignupForm) => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/v1/auth/signup`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: data.email,
-            password: data.password,
-            nickname: data.nickname,
-          }),
-        }
-      );
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+        nickname: data.nickname,
+      }),
+    });
 
-      if (!res.ok) throw new Error("회원가입 실패");
-      const json = await res.json(); // { accessToken, user }
-
-      localStorage.setItem("accessToken", json.accessToken);
-      localStorage.setItem("user", JSON.stringify(json.user));
-
-      nav("/", { replace: true });
-    } catch (err) {
-      alert("회원가입 중 오류가 발생했습니다.");
-      console.error(err);
+    if (!res.ok) {
+      // 응답 본문을 시도해 보고, 없으면 상태코드 표시
+      const text = await res.text().catch(() => "");
+      let msg = `회원가입 실패 (HTTP ${res.status})`;
+      try {
+        const json = JSON.parse(text);
+        if (json?.message) msg = Array.isArray(json.message) ? json.message.join("\n") : json.message;
+      } catch { /* text가 JSON이 아니면 무시 */ }
+      throw new Error(msg);
     }
-  };
 
-  // 단계별 유효성 (watch + errors 기반)
+    const json = await res.json(); // { accessToken, user }
+    localStorage.setItem("accessToken", json.accessToken);
+    localStorage.setItem("user", JSON.stringify(json.user));
+    nav("/", { replace: true });
+  } catch (err: any) {
+    alert(err?.message ?? "회원가입 중 오류가 발생했습니다.");
+    console.error(err);
+  }
+};
+
+
+  /** 단계별 활성화 조건 (스키마 결과 기반) */
   const step1Valid =
-    !!email &&
-    !!password &&
-    !!confirm &&
-    !errors.email &&
-    !errors.password &&
-    !errors.confirm &&
-    password === confirm &&
-    passwordStrength(password) >= 3;
-
+    !!email && !!password && !!confirm && !errors.email && !errors.password && !errors.confirm;
   const step2Valid = !!nickname && !errors.nickname;
-  const step3Valid = agree === true && !errors.agree;
+  const step3Valid = agree && !errors.agree;
 
   const goNext = () => {
     if (step === 1 && step1Valid) setStep(2);
@@ -114,6 +136,7 @@ export default function SignupPage() {
           <h1 className="mb-6 text-center text-2xl font-bold text-white">회원가입</h1>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* STEP 1: 이메일/비밀번호/확인 */}
             {step === 1 && (
               <section className="space-y-4">
                 {/* 이메일 */}
@@ -121,13 +144,7 @@ export default function SignupPage() {
                   <input
                     type="email"
                     placeholder="이메일을 입력해주세요!"
-                    {...register("email", {
-                      required: "이메일을 입력해주세요.",
-                      pattern: {
-                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                        message: "올바른 이메일 형식을 입력해주세요.",
-                      },
-                    })}
+                    {...register("email")}
                     className={`w-full rounded-lg bg-black px-4 py-3 placeholder-gray-400 outline-none ring-1 focus:ring-2 ${
                       errors.email ? "ring-red-500 focus:ring-red-500" : "ring-white/10 focus:ring-[#E52B12]"
                     }`}
@@ -140,12 +157,7 @@ export default function SignupPage() {
                   <input
                     type={showPw ? "text" : "password"}
                     placeholder="비밀번호를 입력해주세요!"
-                    {...register("password", {
-                      required: "비밀번호를 입력해주세요.",
-                      minLength: { value: 8, message: "비밀번호는 최소 8자 이상이어야 합니다." },
-                      validate: (v: string) =>
-                        passwordStrength(v) >= 3 || "영문/숫자/특수문자 중 2가지 이상을 포함해주세요.",
-                    })}
+                    {...register("password")}
                     className={`w-full rounded-lg bg-black px-4 py-3 pr-11 placeholder-gray-400 outline-none ring-1 focus:ring-2 ${
                       errors.password ? "ring-red-500 focus:ring-red-500" : "ring-white/10 focus:ring-[#E52B12]"
                     }`}
@@ -160,7 +172,7 @@ export default function SignupPage() {
                     {showPw ? "🙈" : "👁️"}
                   </button>
                   {errors.password && <p className="mt-1 text-xs text-red-400">{errors.password.message}</p>}
-                  <StrengthMeter value={passwordStrength(password)} />
+                  <StrengthMeter value={passwordStrength(password || "")} />
                 </div>
 
                 {/* 비밀번호 확인 */}
@@ -168,10 +180,7 @@ export default function SignupPage() {
                   <input
                     type={showConfirmPw ? "text" : "password"}
                     placeholder="비밀번호를 다시 입력해주세요!"
-                    {...register("confirm", {
-                      required: "비밀번호 확인을 입력해주세요.",
-                      validate: (v: string) => v === password || "비밀번호가 일치하지 않습니다.",
-                    })}
+                    {...register("confirm")}
                     className={`w-full rounded-lg bg-black px-4 py-3 pr-11 placeholder-gray-400 outline-none ring-1 focus:ring-2 ${
                       errors.confirm ? "ring-red-500 focus:ring-red-500" : "ring-white/10 focus:ring-[#E52B12]"
                     }`}
@@ -203,17 +212,14 @@ export default function SignupPage() {
               </section>
             )}
 
+            {/* STEP 2: 닉네임 */}
             {step === 2 && (
               <section className="space-y-4">
-                {/* 닉네임 */}
                 <div>
                   <input
                     type="text"
                     placeholder="닉네임을 입력해주세요!"
-                    {...register("nickname", {
-                      required: "닉네임을 입력해주세요.",
-                      minLength: { value: 2, message: "닉네임은 2자 이상이어야 합니다." },
-                    })}
+                    {...register("nickname")}
                     className={`w-full rounded-lg bg-black px-4 py-3 placeholder-gray-400 outline-none ring-1 focus:ring-2 ${
                       errors.nickname ? "ring-red-500 focus:ring-red-500" : "ring-white/10 focus:ring-[#E52B12]"
                     }`}
@@ -243,13 +249,13 @@ export default function SignupPage() {
               </section>
             )}
 
+            {/* STEP 3: 약관 */}
             {step === 3 && (
               <section className="space-y-4">
-                {/* 약관 동의 */}
                 <label className="flex items-center gap-2 text-sm text-gray-300">
                   <input
                     type="checkbox"
-                    {...register("agree", { required: "약관에 동의해야 가입할 수 있습니다." })}
+                    {...register("agree")}
                     className="size-4 accent-pink-600"
                   />
                   서비스 이용약관 및 개인정보 처리방침에 동의합니다.
