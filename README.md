@@ -1,69 +1,99 @@
-# 9th-web-a
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
 
-[UMC DDWU 9th를 위한 깃허브 사용법 및 규칙](https://makeus-challenge.notion.site/26fb57f4596b80e78684e241677067b5)
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-<br>
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## 🌱 Pull Requests Rule
+## Description
 
-**Title**: :이모지: [WeekN_닉네임_미션번호]
-(ex. ✨ Week01_bbungya_01)
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-**Reviewers(PR을 리뷰해 줄 팀원)**: 파트장으로 설정
+## Project setup
 
-**Assignees(PR 담당자)**: 본인
+```bash
+$ pnpm install
+```
 
-**Labels**: 해당하는 기능 label 설정
+## Compile and run the project
 
-<br/>
+```bash
+# development
+$ pnpm run start
 
-## 📚 <span id="git-컨벤션">git 컨벤션</span>
+# watch mode
+$ pnpm run start:dev
 
-### 브랜치 명명 규칙
+# production mode
+$ pnpm run start:prod
+```
 
-- 브랜치 명: `weekN_닉네임` (ex. week01_bbungya)
-  - 만약 한 주차에 미션이 여러 개면 닉네임 뒤에 `_미션 번호` 를 붙입니다. (ex. week01_bbungya_01)
-  - 다음 주차로 이어지는 미션이라면 **저번주 브랜치에서 새 브랜치 생성**
+## Run tests
 
-### 커밋 메세지 규칙
+```bash
+# unit tests
+$ pnpm run test
 
-**Gitmoji 사용**
+# e2e tests
+$ pnpm run test:e2e
 
-| **타입** | **설명**                             | **이모지** |
-| -------- | ------------------------------------ | ---------- |
-| feat     | 새로운 기능 추가                     | ✨         |
-| fix      | 버그 수정                            | 🐛         |
-| docs     | 문서 수정 (README, 주석 등)          | 📝         |
-| style    | 코드 스타일 변경 (포맷, 세미콜론 등) | 🎨         |
-| refactor | 리팩토링 (기능 변화 없음)            | ♻️         |
-| test     | 테스트 코드 추가 / 수정              | ✅         |
-| chore    | 빌드 설정, 패키지 관리 등 기타 작업  | 🧽         |
-| perf     | 성능 개선                            | ⚡         |
-| ci       | CI/CD 설정 변경                      | 👷🏻         |
-| build    | 빌드 관련 파일 수정 (예: Gradle)     | 🌱         |
-| revert   | 이전 커밋 되돌리기                   | ⏪         |
+# test coverage
+$ pnpm run test:cov
+```
 
-### 커밋 메세지 형식
+## Deployment
 
-**type(scope): subject**
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
-- `type` : 커밋의 종류
-- `scope (optional)` : 영향 받는 모듈 or 기능
-- `subject` : 커밋의 간단한 설명
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
 
-feat(user): 회원 프로필 조회 API 추가 <br>
-fix(jwt): 토큰 만료 시간 오류 수정 <br>
-docs: 사용자 API 명세 추가<br>
-refactor(user): 로직 분리 및 유틸 메서드 추출<br>
-style: 코드 정렬 및 불필요한 공백 제거<br>
-test(user): 회원가입 테스트 케이스 추가<br>
+```bash
+$ pnpm install -g mau
+$ mau deploy
+```
 
-<br>
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
-## 1. 자신의 브랜치에 프로젝트 업로드하기
+## Resources
 
-## 2. Main 브랜치로 PR(Pull Request) 날리기
+Check out a few resources that may come in handy when working with NestJS:
 
-## 3. 스터디원 코드 리뷰해주기
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
 
-Copyright © Soyeon Lee (bbungya) All rights reserved.
+## Support
+
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+
+## Stay in touch
+
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
+
+## License
+
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
