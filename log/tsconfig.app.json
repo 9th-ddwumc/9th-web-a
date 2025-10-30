@@ -24,5 +24,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": [
+  "src/**/*",
+  "global.d.ts" // 상대 경로가 아닌 파일 이름만 사용
+]
 }

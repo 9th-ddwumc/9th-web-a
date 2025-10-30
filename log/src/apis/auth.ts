@@ -10,6 +10,6 @@ export const postSignin = async(body: RequestSigninDto): Promise<ResponseSigninD
     return data;
 }
 export const getMyInfo = async():Promise<ResponseMyInfo> =>{
-    const {data} = await axiosInstance.post('/v1/users/me');
+    const {data} = await axiosInstance.get('/v1/users/me');
     return data;
 }

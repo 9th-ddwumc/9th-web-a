@@ -49,9 +49,18 @@ const SignupPage = () => {
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        const {passwordCheck, ...rest}=data;
-
-        const response =await postSignup(rest)
+        try {
+            const { passwordCheck, ...rest } = data;
+            const response = await postSignup(rest);
+            
+            if (response) {
+                alert('회원가입이 완료되었습니다!');
+                navigate('/login');
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            alert('회원가입에 실패했습니다. 다시 시도해주세요.');
+        }
     };
 
     const handleGoBack = () => {
