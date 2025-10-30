@@ -1,36 +1,47 @@
-
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './App.css'
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedLayout from './layouts/ProtectedLayout';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import MyPage from './pages/MyPage';
+import { createBrowserRouter, RouterProvider, type RouteObject } from 'react-router-dom'
+import HomePage from './pages/HomePage' // HomePage는 HomePage 파일에서
+import NotFoundPage from './pages/NotFoundpage'
+import SignupPage from './pages/SignupPage.tsx'
+import HomeLayout from './layouts/HomeLayout.tsx' // 예시 경로
+import LoginPage from './pages/LoginPage'
+import MyPage from './pages/MyPage'
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedLayout from './layouts/ProtectedLayout'
 
-const router = createBrowserRouter([
-    {
-        children: [
-            // 1. Public Routes (인증 없이 접근 가능)
-            { path: "/", element: <HomePage /> },
-            { path: "login", element: <LoginPage /> },
+const publicRoutes: RouteObject[] = [
+  {
+    path: '/',
+    element: <HomeLayout/>,
+    errorElement: <NotFoundPage/>,
+    children: [ 
+      {index: true, element: <HomePage/>},
+      {path: 'Login', element: <LoginPage/>},
+      {path: 'Signup', element: <SignupPage/>}
+    ]
+  }
+]
 
-            // 2. Protected Routes (인증이 필요한 라우트) - ProtectedLayout 적용 [00:46:08]
-            {
-                element: <ProtectedLayout />, // 이 엘리먼트가 토큰을 체크함
-                children: [
-                    { path: "my", element: <MyPage /> }
-                ],
-            },
-        ],
-    },
-]);
+const protectedRoutes: RouteObject[] = [
+  {
+    path: '/',
+    element: <ProtectedLayout />,
+    errorElement: <NotFoundPage/>,
+    children: [
+      { path: '/my', element: <MyPage/> }
+    ]
+  }
+]
 
+const router = createBrowserRouter( [...publicRoutes, ...protectedRoutes]);
 function App() {
+
   return (
     <AuthProvider>
-        <RouterProvider router={router} />
+     <RouterProvider router={router}/>;
     </AuthProvider>
   )
 }
 
 export default App
+ 

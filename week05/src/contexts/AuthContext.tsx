@@ -1,109 +1,128 @@
-/* eslint-disable no-irregular-whitespace */
-import { createContext, useContext, useState, type PropsWithChildren } from "react";
-import { useLocalStorage } from "../hooks/useLocalStorage"; 
-import { LOCAL_STORAGE_KEY } from "../constants";
-import type { RequestSigninDto } from "../types/auth";
-import { postSignin, postLogout } from "../api/auth"; // postLogout 임포트 추가
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-refresh/only-export-components */
+import { createContext } from "react";
+import { postSignin, postLogout, type RequestSigninDto } from "../types/auth";
+import { useContext, useState, type PropsWithChildren, useEffect } from "react";
+import { LOCAL_STORAGE_KEY } from "../constants/index";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
-// 1. 타입 정의
 interface AuthContextType {
-    accessToken: string | null;
-    refreshToken: string | null;
-    login: (signInData: RequestSigninDto) => Promise<void>;
-    logout: () => Promise<void>;
+    accessToken: string | null;
+    refreshToken: string | null;
+    login(signinData: RequestSigninDto): Promise<void>;
+    logout(): Promise<void>;
 }
 
-// 2. 컨텍스트 생성 (초기값 설정)
-const AuthContext = createContext<AuthContextType>({
-    accessToken: null,
-    refreshToken: null,
-    login: async () => {},
-    logout: async () => {},
-});
+export const AuthContext = createContext<AuthContextType>({
+        accessToken: null,
+        refreshToken: null,
+        login: async () => {},
+        logout: async () => {},
+    }
+);
 
-// 3. AuthProvider (Provider 컴포넌트)
-export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
+export const AuthProvider = ({ children }: PropsWithChildren) => {
 
-    // Access Token 관련 훅
-    const [
-        storedAccessToken, 
-        setAccessTokenInStorage, // setValue (1번째 인덱스)
-        removeAccessToken       // removeValue (2번째 인덱스)
-    ] = useLocalStorage<string | null>(LOCAL_STORAGE_KEY.ACCESS_TOKEN, null);
+    const { getItem: getAccessToken, setItem: setAccessToken, removeItem: removeAccessToken } = useLocalStorage(LOCAL_STORAGE_KEY.ACCESS_TOKEN);
+    const { getItem: getRefreshToken, setItem: setRefreshToken, removeItem: removeRefreshToken } = useLocalStorage(LOCAL_STORAGE_KEY.REFRESH_TOKEN);
 
-    // Refresh Token 관련 훅
-    const [
-        storedRefreshToken, 
-        setRefreshTokenInStorage, // setValue (1번째 인덱스)
-        removeRefreshToken      // removeValue (2번째 인덱스)
-    ] = useLocalStorage<string | null>(LOCAL_STORAGE_KEY.REFRESH_TOKEN, null);
+    const [accessToken, setAccessTokenState] = useState<string | null>(() => {
+        const token = getAccessToken(null);
+        // undefined나 잘못된 값 정리
+        if (!token || token === 'undefined' || token === 'null') {
+            removeAccessToken();
+            return null;
+        }
+        return token;
+    });
+    
+    const [refreshToken, setRefreshTokenState] = useState<string | null>(() => {
+        const token = getRefreshToken(null);
+        if (!token || token === 'undefined' || token === 'null') {
+            removeRefreshToken();
+            return null;
+        }
+        return token;
+    });
 
-    // 4. 상태 정의 및 지연 초기화 ([00:17:15])
-    // 🚨 수정: useLocalStorage의 첫 번째 인덱스인 storedValue를 상태의 초기값으로 사용합니다.
-    // useLocalStorage 내부에서 이미 localStorage를 읽어오므로, 여기서는 그 상태값을 사용합니다.
-    const [accessToken, setAccessToken] = useState<string | null>(storedAccessToken);
-    const [refreshToken, setRefreshToken] = useState<string | null>(storedRefreshToken);
+    // 초기화 시 잘못된 토큰 정리
+    useEffect(() => {
+        const cleanupInvalidTokens = () => {
+            const accessTokenValue = localStorage.getItem(LOCAL_STORAGE_KEY.ACCESS_TOKEN);
+            const refreshTokenValue = localStorage.getItem(LOCAL_STORAGE_KEY.REFRESH_TOKEN);
+            
+            if (accessTokenValue === 'undefined' || accessTokenValue === 'null') {
+                localStorage.removeItem(LOCAL_STORAGE_KEY.ACCESS_TOKEN);
+            }
+            if (refreshTokenValue === 'undefined' || refreshTokenValue === 'null') {
+                localStorage.removeItem(LOCAL_STORAGE_KEY.REFRESH_TOKEN);
+            }
+        };
+        
+        cleanupInvalidTokens();
+    }, []);
 
-    // 5. 로그인 함수 구현 ([00:20:15])
-    const login = async (data: RequestSigninDto) => {
-        try {
-            // API 요청 (postSignIn)c
-            const res = await postSignin(data);
-            const { accessToken: newAccessToken, refreshToken: newRefreshToken } = res.data;
+    const login = async (signinData: RequestSigninDto) => {
+        try {
+            const response = await postSignin(signinData);
+            
+            // 응답 구조에 따라 토큰 추출
+            const data = response.data || response;
+            
+            const newAccessToken = data.accessToken;
+            const newRefreshToken = data.refreshToken;
+            
+            if (!newAccessToken || !newRefreshToken) {
+                throw new Error('토큰이 응답에 포함되지 않았습니다.');
+            }
 
-            // 🚨 수정: Access Token 및 Refresh Token 로컬 스토리지 및 상태 업데이트 로직 완성
-            
-            // 로컬 스토리지 저장
-            setAccessTokenInStorage(newAccessToken); 
-            setRefreshTokenInStorage(newRefreshToken);
+            // localStorage에 저장
+            setAccessToken(newAccessToken);
+            setRefreshToken(newRefreshToken);
+            
+            // 상태 업데이트
+            setAccessTokenState(newAccessToken);
+            setRefreshTokenState(newRefreshToken);
 
-            // 상태 업데이트
-            setAccessToken(newAccessToken);
-            setRefreshToken(newRefreshToken);
+            alert('로그인 성공');
+        } catch (error) {
+            console.error('Login error in AuthContext:', error);
+            alert('로그인 실패: ' + (error as Error).message);
+            throw error;
+        }
+    };
 
-            alert("로그인 성공");
+    const logout = async () => {
+        try {
+            // 서버에 로그아웃 요청 (404 에러가 나도 계속 진행)
+            await postLogout();
+        } catch (error: any) {
+            // 404 에러는 무시 (서버에 logout 엔드포인트가 없을 수 있음)
+            if (error?.response?.status !== 404) {
+                console.error('Logout error:', error);
+            }
+        } finally {
+            // 에러 여부와 관계없이 로컬 토큰은 항상 제거
+            removeAccessToken();
+            removeRefreshToken();
+            setAccessTokenState(null);
+            setRefreshTokenState(null);
+            alert('로그아웃 성공');
+        }
+    };
 
-            // 로그인 성공 후 페이지 이동 (예: 마이페이지)
-            window.location.href = "/my";
-        } catch (error) {
-            console.error("로그인 실패:", error);
-            alert("로그인 실패");
-        }
-    };
-    
-    // 6. 로그아웃 함수 구현 ([00:23:37])
-    const logout = async () => {
-        try {
-            await postLogout(); // API 호출
-
-            // 로컬 스토리지 및 상태 초기화
-            removeAccessToken();
-            removeRefreshToken();
-        
-            setAccessToken(null);
-            setRefreshToken(null);
-
-            alert("로그아웃 성공");
-            // 로그아웃 후 홈으로 이동
-            window.location.href = "/";
-        } catch (error) {
-            console.error("로그아웃 실패:", error);
-            // 로그아웃 API 실패해도 로컬 상태는 지워주는 것이 일반적입니다. (이미 위에서 처리됨)
-        }
-    };
-
-    return (
-        <AuthContext.Provider value={{ accessToken, refreshToken, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+    return (
+        <AuthContext.Provider value={{ accessToken, refreshToken, login, logout }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("AuthContext를 찾을 수 없습니다.");
-    }
-    return context;
+    const context = useContext(AuthContext);
+    if(!context){
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 };
