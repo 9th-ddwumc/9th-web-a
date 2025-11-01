@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import axios, { type InternalAxiosRequestConfig } from "axios";
 import { LOCAL_STORAGE_KEY } from "../constants/index";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -16,7 +17,7 @@ export const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
     (config) => {
         try {
-            const tokenString = localStorage.getItem(LOCAL_STORAGE_KEY.accessToken);
+            const tokenString = localStorage.getItem(LOCAL_STORAGE_KEY.ACCESS_TOKEN);
             if (tokenString) {
                 // JSON.parse로 파싱 시도
                 let token = tokenString;
@@ -51,8 +52,8 @@ axiosInstance.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest?._retry) {
             // 토큰이 만료되었거나 유효하지 않은 경우
             if (originalRequest?.url?.includes('/auth/refresh')) {
-                const { removeItem: removeAccessToken } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
-                const { removeItem: removeRefreshToken } = useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
+                const { removeItem: removeAccessToken } = useLocalStorage(LOCAL_STORAGE_KEY.ACCESS_TOKEN);
+                const { removeItem: removeRefreshToken } = useLocalStorage(LOCAL_STORAGE_KEY.REFRESH_TOKEN);
                 removeAccessToken();
                 removeRefreshToken();
             }
@@ -65,16 +66,16 @@ axiosInstance.interceptors.response.use(
             if(!refreshPromise) {
                 refreshPromise = (async () => {
                     try {
-                        const { getItem: getRefreshToken, removeItem: removeRefreshToken } = useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
-                        const refreshToken = getRefreshToken(LOCAL_STORAGE_KEY.refreshToken);
+                        const { getItem: getRefreshToken, removeItem: removeRefreshToken } = useLocalStorage(LOCAL_STORAGE_KEY.REFRESH_TOKEN);
+                        const refreshToken = getRefreshToken(LOCAL_STORAGE_KEY.REFRESH_TOKEN);
                         const{data} = await axiosInstance.post('/auth/refresh', { refreshToken });
-                        const {setItem: setAccessToken} = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
+                        const {setItem: setAccessToken} = useLocalStorage(LOCAL_STORAGE_KEY.ACCESS_TOKEN);
                         setAccessToken(data.accessToken);
                         getRefreshToken(data.refreshToken);
                         return data.accessToken;
                     } catch (error) {
-                        const {removeItem: removeAccessToken} = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
-                        const {removeItem: removeRefreshToken} = useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
+                        const {removeItem: removeAccessToken} = useLocalStorage(LOCAL_STORAGE_KEY.ACCESS_TOKEN);
+                        const {removeItem: removeRefreshToken} = useLocalStorage(LOCAL_STORAGE_KEY.REFRESH_TOKEN);
                         removeAccessToken();
                         removeRefreshToken();
                     }finally {

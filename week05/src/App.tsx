@@ -1,13 +1,14 @@
 import './App.css'
 import { createBrowserRouter, RouterProvider, type RouteObject } from 'react-router-dom'
-import HomePage from './pages/HomePage' // HomePage는 HomePage 파일에서
-import NotFoundPage from './pages/NotFoundpage'
+import HomePage from './pages/HomePage'
 import SignupPage from './pages/SignupPage.tsx'
 import HomeLayout from './layouts/HomeLayout.tsx' // 예시 경로
 import LoginPage from './pages/LoginPage'
 import MyPage from './pages/MyPage'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedLayout from './layouts/ProtectedLayout'
+import GoogleLoginRedirectPage from './pages/GoogleLoginRedirectPage.tsx'
+import NotFoundPage from './pages/NotFoundPage.tsx'
 
 const publicRoutes: RouteObject[] = [
   {
@@ -17,7 +18,8 @@ const publicRoutes: RouteObject[] = [
     children: [ 
       {index: true, element: <HomePage/>},
       {path: 'Login', element: <LoginPage/>},
-      {path: 'Signup', element: <SignupPage/>}
+      {path: 'Signup', element: <SignupPage/>},
+      {path: 'v1/auth/google/callback', element: <GoogleLoginRedirectPage/>}
     ]
   }
 ]
