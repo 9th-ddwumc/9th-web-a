@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode, useEffect } from 'react'; 
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { postLogin, postLogout, type LoginForm } from '../api/auth'; 
 import { apiClient } from '../api/apiClient'; 
@@ -20,13 +20,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessToken, removeAccessToken] = useLocalStorage<string | null>('accessToken', null);
   const [refreshToken, setRefreshToken, removeRefreshToken] = useLocalStorage<string | null>('refreshToken', null);
 
-  const updateAccessToken = (token: string | null) => {
-    setAccessToken(token);
-    if (token) {
-      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  // accessToken이 변경될 때마다 apiClient 헤더를 동기화하는 useEffect 추가
+  useEffect(() => {
+    if (accessToken) {
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
     } else {
       delete apiClient.defaults.headers.common['Authorization'];
     }
+  }, [accessToken]); // accessToken이 바뀔 때마다 실행
+
+  //  updateAccessToken 함수는 state 설정만 하도록 간소화
+  const updateAccessToken = (token: string | null) => {
+    setAccessToken(token);
   };
 
   const login = async (loginData: LoginForm): Promise<boolean> => {
@@ -34,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { accessToken, refreshToken } = await postLogin(loginData); 
       
       if (accessToken && refreshToken) { 
-        updateAccessToken(accessToken); 
+        updateAccessToken(accessToken); // state 변경 (useEffect가 헤더 설정)
         setRefreshToken(refreshToken); 
         return true;
       }
@@ -49,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await postLogout();
     } finally {
-      updateAccessToken(null); 
+      updateAccessToken(null); // state 변경 (useEffect가 헤더 삭제)
       removeRefreshToken();
     }
   };
@@ -73,4 +78,3 @@ export function useAuth() {
   }
   return context;
 }
-
