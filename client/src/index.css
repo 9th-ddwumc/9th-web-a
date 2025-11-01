@@ -1,11 +1,4 @@
 @import "tailwindcss";
 
-/* 화면 전체를 기본 다크 바탕으로 쓰기 */
-@layer base {
-  html, body, #root {
-    @apply h-full w-full bg-black text-white;
-  }
-  body {
-    @apply m-0;
-  }
-}
+/* 선택: 전역 높이 */
+html, body, #root { height: 100%; }

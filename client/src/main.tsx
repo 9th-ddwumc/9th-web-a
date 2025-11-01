@@ -1,35 +1,41 @@
-// client/src/main.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import "./index.css";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import "./index.css"; // 👈 이 줄 추가!
 
-import Layout from "./components/Layout";
+import HomeLayout from "./layouts/HomeLayout";
+import ProtectedLayout from "./layouts/ProtectedLayout";
+
 import HomePage from "./pages/HomePage";
-import MoviePage from "./pages/MoviePage";
-import MovieDetailPage from "./pages/MovieDetailPage";
-import NotFoundPage from "./pages/NotFoundPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import Mypage from "./pages/Mypage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Layout />,          // Layout 안에 <Outlet /> 필수
+    element: <HomeLayout />,
     children: [
-      { index: true, element: <Navigate to="/movies/popular" replace /> },
-      { path: "/home", element: <HomePage /> },
-      { path: "/movies/:category", element: <MoviePage /> },
-      { path: "/movie/:movieId", element: <MovieDetailPage /> },
+      { path: "/", element: <LoginPage /> },
       { path: "/login", element: <LoginPage /> },
-      { path: "signup", element: <SignupPage /> },
-      { path: "*", element: <NotFoundPage /> },
+      { path: "/signup", element: <SignupPage /> },
     ],
   },
+  {
+    element: <ProtectedLayout />, // 로그인 필요한 구역
+    children: [
+      { path: "/home", element: <HomePage /> },
+      { path: "/mypage", element: <Mypage /> },
+    ],
+  },
+  { path: "*", element: <NotFoundPage /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </React.StrictMode>
 );
