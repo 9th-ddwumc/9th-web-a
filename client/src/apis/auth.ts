@@ -33,3 +33,6 @@ export const postLogout = async () => {
   const { data } = await axiosInstance.post("/v1/auth/signout");
   return data;
 };
+
+export const postRefresh = (refreshToken: string) =>
+  axiosInstance.post<ResponseSinginDto>("/v1/auth/refresh", { refreshToken });
