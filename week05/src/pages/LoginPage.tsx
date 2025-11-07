@@ -1,64 +1,119 @@
-// src/pages/LoginPage.tsx
+import { type UserSigninInformation, validateSignin } from "../utils/validator";
+import useForm from "../hooks/useForm";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+const LoginPage = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-const LoginPage: React.FC = () => {
-    // AuthContext에서 accessToken 상태와 login 함수 가져오기
-    const { accessToken, login } = useAuth(); // [00:29:40]
-    const navigate = useNavigate();
+  // const { setAccessToken } = useAuth();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+  const { values, errors, touched, getInputProps } =
+    useForm<UserSigninInformation>({
+      initialValue: {
+        email: "",
+        password: "",
+      },
+      validate: validateSignin,
+    });
 
-    // 💡 로그인 상태일 경우 자동 리다이렉션 로직 ([00:48:00] 이후)
-    useEffect(() => {
-        if (accessToken) {
-            // 토큰이 있다면 홈(/)으로 이동
-            navigate('/'); // [00:49:15]
-        }
-    }, [accessToken, navigate]);
+  const handleSubmit = async () => {
+    // try {
+    //   const response: ResponseSigninDto = await postSignin(values);
+    //   setItem(response.data.accessToken); // accessToken 저장
+    //   setAccessToken(response.data.accessToken);
+    //   console.log("✅ 로그인 성공! 토큰:", response.data.accessToken);
+    //   navigate("/mypage");
+    // } catch (error) {
+    //   console.error("❌ 로그인 실패:", error);
+    //   alert("로그인에 실패했습니다.");
+    // }
+    await login(values);
+  };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        try {
-            // 💡 useAuth의 login 함수를 호출하여 인증 처리 ([00:30:21])
-            await login({ email, password }); 
-            // 성공하면 login 함수 내부에서 마이페이지(/my)로 window.location.href 이동
-            // (useAuth 내부에서는 useNavigate 사용 불가 문제로 인한 우회 [00:34:03])
+  // 구글 로그인 리다이렉트 처리
+  const handleGoogleLogin = () => {
+    window.location.href =
+      import.meta.env.VITE_SERVER_API_URL + "/v1/auth/google/login";
+  };
 
-        } catch (error) {
-            console.error('Login error:', error);
-            // login 함수에서 이미 alert 처리하지만, 명시적으로 추가 가능
-        }
-    };
+  const isDisabled =
+    Object.values(errors || {}).some((error) => error.length > 0) ||
+    Object.values(values).some((value) => value === "");
 
-    if (accessToken) {
-        return null; // 리다이렉션 대기 중에는 아무것도 렌더링하지 않음
-    }
-
-    return (
-        <div style={{ padding: '20px' }}>
-            <h2>로그인</h2>
-            <form onSubmit={handleSubmit}>
-                <input 
-                    type="email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    placeholder="이메일"
-                />
-                <input 
-                    type="password" 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    placeholder="비밀번호"
-                />
-                <button type="submit">로그인</button>
-            </form>
+  return (
+    <div className="flex flex-col items-center justify-center h-full gap-4 bg-black text-white py-20">
+      <div className="flex flex-col gap-3 w-[300px]">
+        {/* 뒤로가기 */}
+        <div className="relative flex items-center justify-center py-2">
+          <button
+            className="absolute left-4 text-white text-2xl cursor-pointer"
+            onClick={() => navigate(-1)}
+          >
+            <img
+              src="https://icon-library.com/images/ios-back-icon/ios-back-icon-10.jpg"
+              alt="뒤로가기"
+              className="w-6 h-6"
+            />
+          </button>
+          <h1 className="text-xl font-bold text-white">로그인</h1>
         </div>
-    );
+
+        {/* 구글 로그인 버튼 */}
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full border border-white rounded-md py-2 flex items-center justify-center gap-2 hover:bg-gray-800 hover:text-white transition"
+        >
+          <img
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="google"
+            className="w-5 h-5"
+          />
+          구글 로그인
+        </button>
+
+        {/* 구분선 */}
+        <div className="flex items-center w-full gap-2 text-gray-400 mt-7 mb-7">
+          <div className="flex-1 h-px bg-gray-500" />
+          <span className="text-sm">OR</span>
+          <div className="flex-1 h-px bg-gray-500" />
+        </div>
+
+        <input
+          {...getInputProps("email")}
+          name="email"
+          type={"email"}
+          className={`border border-[#ccc] w-[300px] p-[10px] rounded-sm focus:outline-2 placeholder-gray-200 text-white `}
+          placeholder="이메일을 입력해주세요"
+        />
+        {/* 새로고침 했을 때 경고 문구 안 보이게  */}
+        {errors?.email && touched?.email && (
+          <div className="text-red-500 text-sm">{errors.email}</div>
+        )}
+
+        <input
+          {...getInputProps("password")}
+          type={"password"}
+          className={`border border-[#ccc] w-[300px] p-[10px] rounded-sm focus:outline-2 placeholder-gray-200 text-white `}
+          placeholder="비밀번호를 입력해주세요"
+        />
+        {errors?.password && touched?.password && (
+          <div className="text-red-500 text-sm">{errors.password}</div>
+        )}
+
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isDisabled}
+          className="w-full bg-pink-500 text-white py-3 rounded-md text-lg font-bold hover:bg-pink-700 transition-colors cursor-pointer disabled:bg-gray-700"
+        >
+          로그인
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default LoginPage;

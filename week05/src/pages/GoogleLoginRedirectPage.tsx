@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LOCAL_STORAGE_KEY } from "../constants/index";
+import { LOCAL_STORAGE_KEY } from "../constants/key";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
 const GoogleLoginRedirectPage = () => {
