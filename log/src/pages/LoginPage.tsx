@@ -1,22 +1,25 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useForm from "../hooks/useForm";
-import { validateSignin, type UserSignInformation } from "../utils/validate"; 
+import { validateSignin, type UserSignInformation } from "../utils/validate";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
 
 const LoginPage = () => {
     const { login, accessToken } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     
-    // 이미 로그인된 경우 /my로 리다이렉트
+    // ✅ 이전 페이지 경로, 없으면 홈으로
+    const from = (location.state as any)?.from || '/';
+    
+    // 이미 로그인된 경우 리다이렉트
     useEffect(() => {
-        console.log('Current accessToken:', accessToken);
         if (accessToken) {
-            console.log('Redirecting to /my');
-            navigate('/my', { replace: true });
+            navigate(from, { replace: true });
         }
-    }, [accessToken, navigate]);   
+    }, [accessToken, navigate, from]);
      
     const { values, errors, touched, getInputProps } = useForm<UserSignInformation>({
         initialValues: {
@@ -26,19 +29,23 @@ const LoginPage = () => {
         validate: validateSignin,
     });
 
-    const handleSubmit = async() => {
+    const handleSubmit = async () => {
         if (isLoading) return;
         
+        setErrorMessage('');
+        setIsLoading(true);
+        
         try {
-            setIsLoading(true);
-            console.log('Submitting login...');
             await login(values);
-            console.log('Login successful, navigating to /my');
-            // login이 성공하면 accessToken이 업데이트되고
-            // useEffect가 자동으로 /my로 이동시킴
-        } catch (error) {
+            // ✅ 로그인 성공 시 이전 페이지로 이동
+            navigate(from, { replace: true });
+        } catch (error: any) {
             console.error('Login failed:', error);
-            // 에러 메시지는 AuthContext에서 alert로 표시됨
+            const message = error.response?.data?.message || 
+                           error.message || 
+                           '로그인에 실패했습니다.';
+            setErrorMessage(message);
+        } finally {
             setIsLoading(false);
         }
     };
@@ -48,33 +55,40 @@ const LoginPage = () => {
     };
 
     const handleGoogleLogin = () => {
+        // ✅ Google 로그인 후 돌아올 경로를 sessionStorage에 저장
+        sessionStorage.setItem('loginRedirect', from);
         window.location.href = import.meta.env.VITE_SERVER_API_URL + 'v1/auth/google/login';
-    }
+    };
+
     const isDisabled = 
         isLoading ||
         Object.values(errors).some((error) => error.length > 0) || 
-        Object.values(values).some((value) => value === ''); 
+        Object.values(values).some((value) => value === '');
 
     return (
-        <div className="flex flex-col min-h-screen bg-white">
-            {/* 뒤로 가기 버튼 */}
+        <div className="flex flex-col min-h-screen bg-black text-white">
             <div className="p-4">
                 <button 
                     onClick={handleGoBack}
-                    className="text-2xl text-gray-700 hover:text-gray-900 transition-colors "
+                    className="text-2xl hover:text-pink-500 transition-colors"
                     aria-label="뒤로 가기"
                 >
                     &lt;
                 </button>
             </div>
             
-            {/* 로그인 폼 */}
             <div className="flex flex-col items-center justify-center flex-1 gap-4">
                 <div className="flex flex-col gap-3 w-[300px]">
+                    {errorMessage && (
+                        <div className="bg-red-900/20 border border-red-500 text-red-500 px-4 py-3 rounded-md text-sm">
+                            {errorMessage}
+                        </div>
+                    )}
+                    
                     <input 
                         {...getInputProps('email')}
-                        className={`border w-full p-[10px] rounded-sm focus:outline-none focus:border-[#807bff]
-                            ${errors?.email && touched?.email ? 'border-red-500 bg-red-50' : 'border-[#ccc]'}`}
+                        className={`border w-full p-[10px] rounded-sm bg-gray-900 text-white focus:outline-none focus:border-pink-500
+                            ${errors?.email && touched?.email ? 'border-red-500 bg-red-900/20' : 'border-gray-700'}`}
                         type="email"
                         placeholder="이메일"
                         disabled={isLoading}
@@ -85,8 +99,8 @@ const LoginPage = () => {
                     
                     <input 
                         {...getInputProps('password')}
-                        className={`border w-full p-[10px] rounded-sm focus:outline-none focus:border-[#807bff]
-                            ${errors?.password && touched?.password ? 'border-red-500 bg-red-50' : 'border-[#ccc]'}`}
+                        className={`border w-full p-[10px] rounded-sm bg-gray-900 text-white focus:outline-none focus:border-pink-500
+                            ${errors?.password && touched?.password ? 'border-red-500 bg-red-900/20' : 'border-gray-700'}`}
                         type="password"
                         placeholder="비밀번호"
                         disabled={isLoading}
@@ -103,26 +117,28 @@ const LoginPage = () => {
                     <button 
                         type="button"
                         onClick={handleSubmit}
-                        //disabled={isDisabled}
-                        className="w-full bg-blue-600 text-white py-3 rounded-md text-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        disabled={isDisabled}
+                        className="w-full bg-pink-500 text-white py-3 rounded-md text-lg font-medium hover:bg-pink-600 transition-colors cursor-pointer disabled:bg-gray-700 disabled:cursor-not-allowed"
                     >
                         {isLoading ? '로그인 중...' : '로그인'}
                     </button>
-                        <button 
+
+                    <button 
                         type="button" 
                         onClick={handleGoogleLogin} 
-                        //disabled={isDisabled}
-                        // disabled일 때 배경: gray-300, 커서: not-allowed 적용
-                        className="w-full bg-blue-600 text-white py-3 rounded-md text-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer 
-                                disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        disabled={isLoading}
+                        className="w-full bg-gray-800 text-white py-3 rounded-md text-lg font-medium hover:bg-gray-700 transition-colors cursor-pointer 
+                                disabled:bg-gray-900 disabled:text-gray-600 disabled:cursor-not-allowed"
                     >
                         <div className="flex items-center justify-center gap-4">
-                            {/* isDisabled가 true일 때 이미지에 grayscale 및 opacity 적용 */}
-                            <div className={`transition-all duration-200 ${isDisabled ? 'grayscale opacity-50' : ''}`}>
+                            <div className={`transition-all duration-200 ${isLoading ? 'grayscale opacity-50' : ''}`}>
                                 <img 
-                                    src="/images/google.png" // 실제 Google 로고 이미지 경로
+                                    src="/images/google.png"
                                     alt="Google logo"
-                                    className="w-6 h-6" // 이미지 크기는 필요에 따라 조정하세요.
+                                    className="w-6 h-6"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
                                 />
                             </div>
                             <span>Google 계정으로 로그인</span>
@@ -133,4 +149,5 @@ const LoginPage = () => {
         </div>
     );
 }
+
 export default LoginPage;

@@ -1,6 +1,5 @@
-import { createContext } from "react";
+import { createContext, useContext, useState, useEffect, type PropsWithChildren } from "react";
 import { postSignin, postLogout, type RequestSigninDto } from "../types/auth";
-import { useContext, useState, type PropsWithChildren, useEffect } from "react";
 import { LOCAL_STORAGE_KEY } from "../constants/key";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
@@ -12,21 +11,20 @@ interface AuthContextType {
 }
 
 export const AuthContext = createContext<AuthContextType>({
-        accessToken: null,
-        refreshToken: null,
-        login: async () => {},
-        logout: async () => {},
-    }
-);
+    accessToken: null,
+    refreshToken: null,
+    login: async () => {},
+    logout: async () => {},
+});
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
-
-    const { getItem: getAccessToken, setItem: setAccessToken, removeItem: removeAccessToken } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
-    const { getItem: getRefreshToken, setItem: setRefreshToken, removeItem: removeRefreshToken } = useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
+    const { getItem: getAccessToken, setItem: setAccessToken, removeItem: removeAccessToken } = 
+        useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
+    const { getItem: getRefreshToken, setItem: setRefreshToken, removeItem: removeRefreshToken } = 
+        useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
 
     const [accessToken, setAccessTokenState] = useState<string | null>(() => {
         const token = getAccessToken(null);
-        // undefined나 잘못된 값 정리
         if (!token || token === 'undefined' || token === 'null') {
             removeAccessToken();
             return null;
@@ -62,13 +60,14 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     const login = async (signinData: RequestSigninDto) => {
         try {
+            // ✅ postSignin은 이미 response.data를 반환함
             const response = await postSignin(signinData);
             
-            // 응답 구조에 따라 토큰 추출
-            const data = response.data || response;
+            console.log('Login response:', response);
             
-            const newAccessToken = data.accessToken;
-            const newRefreshToken = data.refreshToken;
+            // ✅ CommonResponse 구조 처리
+            const newAccessToken = response.data?.accessToken || response.accessToken;
+            const newRefreshToken = response.data?.refreshToken || response.refreshToken;
             
             if (!newAccessToken || !newRefreshToken) {
                 throw new Error('토큰이 응답에 포함되지 않았습니다.');
@@ -82,10 +81,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
             setAccessTokenState(newAccessToken);
             setRefreshTokenState(newRefreshToken);
 
-            alert('로그인 성공');
+            console.log('로그인 성공');
         } catch (error) {
             console.error('Login error in AuthContext:', error);
-            alert('로그인 실패: ' + (error as Error).message);
+            // ✅ alert 대신 에러를 throw하여 컴포넌트에서 처리하도록 함
             throw error;
         }
     };
@@ -105,7 +104,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
             removeRefreshToken();
             setAccessTokenState(null);
             setRefreshTokenState(null);
-            alert('로그아웃 성공');
         }
     };
 
@@ -118,7 +116,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if(!context){
+    if (!context) {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;

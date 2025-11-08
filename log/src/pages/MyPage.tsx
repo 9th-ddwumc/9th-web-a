@@ -1,51 +1,23 @@
-import { useEffect, useState } from "react"
-import { getMyInfo } from "../types/auth"
+// MyPage.tsx
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import useGetMyInfo from "../hooks/queries/useGetMyInfo";
 
 const MyPage = () => {
     const navigate = useNavigate();
     const { logout, accessToken } = useAuth();
-    const [userInfo, setUserInfo] = useState<{ id?: number; name?: string; email?: string; avatar?: string } | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const getData = async () => {
-            try {
-                if (!accessToken) {
-                    navigate('/login');
-                    return;
-                }
-                
-                setLoading(true);
-                const response = await getMyInfo();
-                console.log('MyPage received data:', response); // 디버깅용
-                
-                setUserInfo({
-                    id: response.id,
-                    name: response.name,
-                    email: response.email,
-                    avatar: response.avatar ?? undefined
-                });
-                setError(null);
-            } catch (err: any) {
-                console.error('Failed to fetch user info:', err);
-                console.error('Error response:', err.response?.data); // 추가 디버깅
-                setError('사용자 정보를 불러오는데 실패했습니다.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        getData();
-    }, [accessToken, navigate]);
     
+    // ✅ useQuery로 사용자 정보 가져오기
+    const { data: userInfo, isPending, isError } = useGetMyInfo(!!accessToken);
+
+    // 로그아웃 핸들러
     const handleLogout = async () => {
         await logout();
         navigate('/');
     }
 
-    if (loading) {
+    // 로딩 상태
+    if (isPending) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
                 <div className="flex flex-col items-center gap-4">
@@ -56,12 +28,15 @@ const MyPage = () => {
         );
     }
 
-    if (error) {
+    // 에러 상태
+    if (isError || !userInfo) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
                 <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
                     <div className="flex flex-col items-center gap-4">
-                        <p className="text-red-600 font-medium text-center">{error}</p>
+                        <p className="text-red-600 font-medium text-center">
+                            사용자 정보를 불러오는데 실패했습니다.
+                        </p>
                         <button
                             onClick={() => navigate('/login')}
                             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -89,7 +64,7 @@ const MyPage = () => {
                         <div className="flex items-start gap-6">
                             {/* 아바타 */}
                             <div className="flex-shrink-0">
-                                {userInfo?.avatar ? (
+                                {userInfo.avatar ? (
                                     <img 
                                         src={userInfo.avatar} 
                                         alt="프로필 사진" 
@@ -98,7 +73,7 @@ const MyPage = () => {
                                 ) : (
                                     <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
                                         <span className="text-3xl font-bold text-gray-500">
-                                            {userInfo?.name?.charAt(0).toUpperCase() || 'U'}
+                                            {userInfo.name?.charAt(0).toUpperCase() || 'U'}
                                         </span>
                                     </div>
                                 )}
@@ -107,19 +82,29 @@ const MyPage = () => {
                             {/* 정보 */}
                             <div className="flex-1 space-y-4">
                                 <div>
-                                    <label className="text-sm text-gray-500 font-medium">ID (이메일)</label>
-                                    <p className="text-lg text-gray-900 mt-1">{userInfo?.email}</p>
+                                    <label className="text-sm text-gray-500 font-medium">
+                                        ID (이메일)
+                                    </label>
+                                    <p className="text-lg text-gray-900 mt-1">
+                                        {userInfo.email}
+                                    </p>
                                 </div>
                                 
                                 <div>
-                                    <label className="text-sm text-gray-500 font-medium">이름</label>
-                                    <p className="text-lg text-gray-900 mt-1">{userInfo?.name}</p>
+                                    <label className="text-sm text-gray-500 font-medium">
+                                        이름
+                                    </label>
+                                    <p className="text-lg text-gray-900 mt-1">
+                                        {userInfo.name}
+                                    </p>
                                 </div>
                                 
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <div>
-                                        <label className="text-sm text-gray-500 font-medium">계정 상태</label>
+                                        <label className="text-sm text-gray-500 font-medium">
+                                            계정 상태
+                                        </label>
                                         <p className="text-lg text-gray-900">로그인</p>
                                     </div>
                                 </div>

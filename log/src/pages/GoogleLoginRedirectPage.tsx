@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LOCAL_STORAGE_KEY } from "../constants/key";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
 const GoogleLoginRedirectPage = () => {
+    const navigate = useNavigate();
     const { setItem: setAccessToken } = useLocalStorage(LOCAL_STORAGE_KEY.accessToken);
     const { setItem: setRefreshToken } = useLocalStorage(LOCAL_STORAGE_KEY.refreshToken);
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -19,7 +21,7 @@ const GoogleLoginRedirectPage = () => {
                     setStatus('error');
                     setMessage('로그인 정보를 받지 못했습니다.');
                     setTimeout(() => {
-                        window.location.href = '/login';
+                        navigate('/login', { replace: true });
                     }, 2000);
                     return;
                 }
@@ -31,9 +33,13 @@ const GoogleLoginRedirectPage = () => {
                 setStatus('success');
                 setMessage('로그인 성공! 잠시만 기다려주세요...');
                 
+                // ✅ sessionStorage에서 원래 페이지 가져오기, 없으면 홈으로
+                const redirectPath = sessionStorage.getItem('loginRedirect') || '/';
+                sessionStorage.removeItem('loginRedirect');
+                
                 // 약간의 딜레이 후 리다이렉트
                 setTimeout(() => {
-                    window.location.href = '/my';
+                    navigate(redirectPath, { replace: true });
                 }, 1500);
                 
             } catch (error) {
@@ -41,19 +47,18 @@ const GoogleLoginRedirectPage = () => {
                 setStatus('error');
                 setMessage('로그인 처리 중 오류가 발생했습니다.');
                 setTimeout(() => {
-                    window.location.href = '/login';
+                    navigate('/login', { replace: true });
                 }, 2000);
             }
         };
 
         processGoogleLogin();
-    }, [setAccessToken, setRefreshToken]);
+    }, [setAccessToken, setRefreshToken, navigate]);
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
             <div className="bg-white rounded-lg shadow-lg p-12 max-w-md w-full">
                 <div className="flex flex-col items-center gap-6">
-                    {/* 상태별 표시 */}
                     {status === 'loading' && (
                         <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     )}
@@ -74,7 +79,6 @@ const GoogleLoginRedirectPage = () => {
                         </div>
                     )}
 
-                    {/* 메시지 */}
                     <div className="text-center">
                         <h2 className={`text-2xl font-bold mb-2 ${
                             status === 'loading' ? 'text-gray-800' :
@@ -90,7 +94,6 @@ const GoogleLoginRedirectPage = () => {
                         </p>
                     </div>
 
-                    {/* 진행 표시 */}
                     {status === 'loading' && (
                         <div className="w-full mt-4">
                             <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
