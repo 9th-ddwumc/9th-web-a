@@ -55,10 +55,12 @@ const LoginPage = () => {
     };
 
     const handleGoogleLogin = () => {
-        // ✅ Google 로그인 후 돌아올 경로를 sessionStorage에 저장
-        sessionStorage.setItem('loginRedirect', from);
-        window.location.href = import.meta.env.VITE_SERVER_API_URL + 'v1/auth/google/login';
-    };
+    sessionStorage.setItem('loginRedirect', from);
+    // ✅ 서버 URL 확인
+    const serverUrl = import.meta.env.VITE_SERVER_API_URL;
+    console.log('Google Login URL:', `${serverUrl}v1/auth/google/login`);
+    window.location.href = `${serverUrl}v1/auth/google/login`;
+};
 
     const isDisabled = 
         isLoading ||

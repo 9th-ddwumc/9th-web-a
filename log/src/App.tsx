@@ -17,15 +17,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <Routes>
+      {/* ✅ 구글 로그인 콜백은 레이아웃 밖에 배치 */}
+      <Route path="/v1/auth/google/callback" element={<GoogleLoginRedirectPage />} />
+      <Route path="/auth/google/callback" element={<GoogleLoginRedirectPage />} />
+      
       <Route element={<MainLayout />}>
         <Route path="/" element={<MainPage />} />
         <Route path="/lp/:lpid" element={<LpDetailPage />} />
         <Route path="/my" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
         <Route path="/search" element={<MainPage />} />
       </Route>
+      
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
-      <Route path="/auth/google/callback" element={<GoogleLoginRedirectPage />} />
     </Routes>
   );
 }

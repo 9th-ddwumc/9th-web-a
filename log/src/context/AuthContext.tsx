@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type PropsWithChildren } from "react";
-import { postSignin, postLogout, type RequestSigninDto } from "../types/auth";
+import { postSignin, postLogout } from "../apis/auth";
+import type { ResponseSigninDto, RequestSigninDto } from "../types/auth"; 
 import { LOCAL_STORAGE_KEY } from "../constants/key";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
@@ -8,13 +9,16 @@ interface AuthContextType {
     refreshToken: string | null;
     login(signinData: RequestSigninDto): Promise<void>;
     logout(): Promise<void>;
+    setTokens(accessToken: string, refreshToken: string): void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
     accessToken: null,
     refreshToken: null,
+    // login 기본값 수정 (AuthContextType과 일치하도록)
     login: async () => {},
     logout: async () => {},
+    setTokens: () => {},
 });
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
@@ -41,7 +45,35 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         return token;
     });
 
-    // 초기화 시 잘못된 토큰 정리
+    // ✅ localStorage 변경 감지 (구글 로그인용)
+    useEffect(() => {
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === LOCAL_STORAGE_KEY.accessToken) {
+                const newToken = e.newValue;
+                if (newToken && newToken !== 'undefined' && newToken !== 'null') {
+                    setAccessTokenState(newToken);
+                } else {
+                    setAccessTokenState(null);
+                }
+            }
+            if (e.key === LOCAL_STORAGE_KEY.refreshToken) {
+                const newToken = e.newValue;
+                if (newToken && newToken !== 'undefined' && newToken !== 'null') {
+                    setRefreshTokenState(newToken);
+                } else {
+                    setRefreshTokenState(null);
+                }
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, []);
+
+    // ✅ 초기화 시 잘못된 토큰 정리
     useEffect(() => {
         const cleanupInvalidTokens = () => {
             const accessTokenValue = localStorage.getItem(LOCAL_STORAGE_KEY.accessToken);
@@ -49,57 +81,67 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
             
             if (accessTokenValue === 'undefined' || accessTokenValue === 'null') {
                 localStorage.removeItem(LOCAL_STORAGE_KEY.accessToken);
+                setAccessTokenState(null);
+            } else if (accessTokenValue) {
+                setAccessTokenState(accessTokenValue);
             }
+            
             if (refreshTokenValue === 'undefined' || refreshTokenValue === 'null') {
                 localStorage.removeItem(LOCAL_STORAGE_KEY.refreshToken);
+                setRefreshTokenState(null);
+            } else if (refreshTokenValue) {
+                setRefreshTokenState(refreshTokenValue);
             }
         };
         
         cleanupInvalidTokens();
     }, []);
 
+    // ✅ 토큰 직접 설정 함수 (구글 로그인용)
+    const setTokens = (newAccessToken: string, newRefreshToken: string) => {
+        setAccessToken(newAccessToken);
+        setRefreshToken(newRefreshToken);
+        setAccessTokenState(newAccessToken);
+        setRefreshTokenState(newRefreshToken);
+    };
+
     const login = async (signinData: RequestSigninDto) => {
         try {
-            // ✅ postSignin은 이미 response.data를 반환함
-            const response = await postSignin(signinData);
+            // postSignin은 ResponseSigninDto를 반환합니다.
+            // response 타입을 ResponseSigninDto로 명시합니다.
+            const response: ResponseSigninDto = await postSignin(signinData);
             
             console.log('Login response:', response);
             
-            // ✅ CommonResponse 구조 처리
-            const newAccessToken = response.data?.accessToken || response.accessToken;
-            const newRefreshToken = response.data?.refreshToken || response.refreshToken;
+            // postSignin이 이미 ResponseSigninDto를 반환하므로,
+            // response에서 직접 accessToken과 refreshToken을 추출합니다.
+            const newAccessToken = response.accessToken;
+            const newRefreshToken = response.refreshToken;
             
             if (!newAccessToken || !newRefreshToken) {
                 throw new Error('토큰이 응답에 포함되지 않았습니다.');
             }
 
-            // localStorage에 저장
             setAccessToken(newAccessToken);
             setRefreshToken(newRefreshToken);
-            
-            // 상태 업데이트
             setAccessTokenState(newAccessToken);
             setRefreshTokenState(newRefreshToken);
 
             console.log('로그인 성공');
         } catch (error) {
             console.error('Login error in AuthContext:', error);
-            // ✅ alert 대신 에러를 throw하여 컴포넌트에서 처리하도록 함
             throw error;
         }
     };
 
     const logout = async () => {
         try {
-            // 서버에 로그아웃 요청 (404 에러가 나도 계속 진행)
             await postLogout();
         } catch (error: any) {
-            // 404 에러는 무시 (서버에 logout 엔드포인트가 없을 수 있음)
             if (error?.response?.status !== 404) {
                 console.error('Logout error:', error);
             }
         } finally {
-            // 에러 여부와 관계없이 로컬 토큰은 항상 제거
             removeAccessToken();
             removeRefreshToken();
             setAccessTokenState(null);
@@ -108,7 +150,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     };
 
     return (
-        <AuthContext.Provider value={{ accessToken, refreshToken, login, logout }}>
+        <AuthContext.Provider value={{ accessToken, refreshToken, login, logout, setTokens }}>
             {children}
         </AuthContext.Provider>
     );
