@@ -1,5 +1,6 @@
+// src/types/lp.ts
 import type { CursorBasedResponse } from "./common.ts";
-import type { CommonResponse } from "./common"; // CommonResponse 타입 추가
+import type { CommonResponse } from "./common";
 
 export type Tag = {
   id: number;
@@ -12,15 +13,16 @@ export type Likes = {
   lpId: number;
 };
 
-// ✅ 추가: LP 생성/수정 요청 DTO
+// LP 생성/수정 요청 DTO 이름 통일
 export type RequestLpCreateDto = {
     title: string;
     content: string;
     thumbnail: string;
     tags: string[]; // 태그 이름 문자열 배열
+    published: boolean; // ✅ published 속성 추가
 };
 
-// ✅ 추가: LpDetail 타입
+// LpDetail 타입
 export interface LpDetail {
     id: number;
     title: string;
@@ -39,7 +41,7 @@ export interface LpDetail {
     likes?: Likes[];
 }
 
-// ✅ 추가: LpDetail 응답 타입
+// LpDetail 응답 타입
 export type ResponseLpDetailDto = CommonResponse & {
     data: LpDetail;
 };

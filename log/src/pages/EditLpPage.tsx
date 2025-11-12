@@ -1,9 +1,10 @@
+// src/pages/EditLpPage.tsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateLp } from '../apis/lp';
+import { putLp } from '../apis/lp'; // ✅ updateLp -> putLp로 수정
 import useGetLpDetail from '../hooks/queries/useGetLpDetail';
-import type { RequestCreateLpDto } from '../types/lp';
+import type { RequestLpCreateDto } from '../types/lp'; // ✅ RequestCreateLpDto -> RequestLpCreateDto로 수정
 import { Loading, ErrorDisplay } from '../component/LoadingError';
 
 const EditLpPage = () => {
@@ -13,7 +14,7 @@ const EditLpPage = () => {
     
     const { data: lpDetail, isPending, isError, error } = useGetLpDetail(lpid);
     
-    const [formData, setFormData] = useState<RequestCreateLpDto>({
+    const [formData, setFormData] = useState<RequestLpCreateDto>({ // ✅ DTO 이름 적용
         title: '',
         content: '',
         thumbnail: '',
@@ -40,7 +41,7 @@ const EditLpPage = () => {
 
     // ✅ LP 수정 Mutation
     const updateLpMutation = useMutation({
-        mutationFn: (data: RequestCreateLpDto) => updateLp(Number(lpid), data),
+        mutationFn: (data: RequestLpCreateDto) => putLp(lpid!, data), // ✅ putLp 사용 및 lpid를 문자열로 전달
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['lp', lpid] });
             queryClient.invalidateQueries({ queryKey: ['lps'] });

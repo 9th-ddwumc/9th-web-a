@@ -1,31 +1,32 @@
+// src/pages/CreateLpPage.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createLp } from '../apis/lp';
-import type { RequestCreateLpDto } from '../types/lp';
+import { postLp } from '../apis/lp';
+import type { RequestLpCreateDto } from '../types/lp';
 
 const CreateLpPage = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     
-    const [formData, setFormData] = useState<RequestCreateLpDto>({
+    const [formData, setFormData] = useState<RequestLpCreateDto>({ // ✅ 타입 적용 완료
         title: '',
         content: '',
         thumbnail: '',
-        published: true,
+        published: true, // ✅ 타입 오류 해결
         tags: [],
     });
     
     const [tagInput, setTagInput] = useState('');
     const [previewImage, setPreviewImage] = useState<string>('');
 
-    // ✅ LP 생성 Mutation
+    // LP 생성 Mutation
     const createLpMutation = useMutation({
-        mutationFn: createLp,
+        mutationFn: postLp,
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['lps'] });
             alert('LP가 성공적으로 생성되었습니다!');
-            navigate(`/lp/${data.id}`);
+            navigate(`/lp/${data.data.id}`);
         },
         onError: (error: any) => {
             console.error('LP 생성 실패:', error);
@@ -33,7 +34,7 @@ const CreateLpPage = () => {
         },
     });
 
-    // ✅ 입력 핸들러
+    // 입력 핸들러
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -43,7 +44,7 @@ const CreateLpPage = () => {
         }
     };
 
-    // ✅ 태그 추가
+    // 태그 추가
     const handleAddTag = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && tagInput.trim()) {
             e.preventDefault();
@@ -57,7 +58,7 @@ const CreateLpPage = () => {
         }
     };
 
-    // ✅ 태그 제거
+    // 태그 제거
     const handleRemoveTag = (tagToRemove: string) => {
         setFormData(prev => ({
             ...prev,
@@ -65,7 +66,7 @@ const CreateLpPage = () => {
         }));
     };
 
-    // ✅ 제출 핸들러
+    // 제출 핸들러
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         

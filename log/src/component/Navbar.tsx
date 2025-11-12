@@ -1,3 +1,5 @@
+// src/component/Navbar.tsx
+
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import useGetMyInfo from "../hooks/queries/useGetMyInfo";
@@ -11,7 +13,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
     const { accessToken } = useAuth();
     const { data: userInfo } = useGetMyInfo(!!accessToken);
     
-    // ✅ 로그아웃 Mutation
+    // 로그아웃 Mutation
     const logoutMutation = useLogoutMutation();
     
     const handleLogout = () => {
@@ -24,9 +26,10 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
         <nav className="bg-black border-b border-gray-800 sticky top-0 z-50">
             <div className="max-w-[1920px] mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-4">
+                    {/* ✅ 버거 아이콘 클릭 시 onMenuClick 호출 */}
                     <button
                         onClick={onMenuClick}
-                        className="lg:hidden p-2 hover:bg-gray-800 rounded"
+                        className="lg:hidden p-2 hover:bg-gray-800 rounded text-white" // text-white 추가
                         aria-label="메뉴"
                     >
                         <svg width="24" height="24" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -42,7 +45,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                 <div className="flex items-center gap-4">
                     <Link 
                         to="/search"
-                        className="text-xl p-2 hover:bg-gray-800 rounded transition-colors"
+                        className="text-xl p-2 hover:bg-gray-800 rounded transition-colors text-white" // text-white 추가
                         aria-label="검색"
                     >
                         🔍

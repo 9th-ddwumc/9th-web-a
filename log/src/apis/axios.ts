@@ -1,3 +1,4 @@
+// src/apis/axios.ts
 import axios, { type InternalAxiosRequestConfig, type AxiosError } from "axios";
 import { LOCAL_STORAGE_KEY } from "../constants/key";
 
@@ -22,8 +23,11 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
     failedQueue = [];
 };
 
+// VITE_SERVER_API_URL의 후행 슬래시를 제거하여 URL 구성을 안정화합니다.
+const API_BASE_URL = import.meta.env.VITE_SERVER_API_URL.replace(/\/$/, ''); // ✅ FIX: 후행 슬래시 제거
+
 export const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_SERVER_API_URL,
+    baseURL: API_BASE_URL, // ✅ 안정화된 URL 사용
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
@@ -35,20 +39,10 @@ axiosInstance.interceptors.request.use(
     (config) => {
         try {
             const tokenString = localStorage.getItem(LOCAL_STORAGE_KEY.accessToken);
-            if (tokenString) {
-                let token = tokenString;
-                try {
-                    // JSON으로 저장되었을 경우 파싱
-                    const parsed = JSON.parse(tokenString);
-                    token = parsed;
-                } catch {
-                    // 파싱 실패시 그대로 사용 (문자열로 저장된 경우)
-                    token = tokenString;
-                }
-                
-                if (token && token !== 'undefined' && token !== 'null') {
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
+            if (tokenString && tokenString !== 'undefined' && tokenString !== 'null') {
+                // FIX: JSON.parse를 사용하여 따옴표가 제거된 실제 토큰 값을 가져옵니다.
+                const token = JSON.parse(tokenString);
+                config.headers.Authorization = `Bearer ${token}`;
             }
         } catch (error) {
             console.error('Error setting auth token:', error);
@@ -66,18 +60,20 @@ axiosInstance.interceptors.response.use(
     async (error: AxiosError) => {
         const originalRequest = error.config as CustomAxiosRequestConfig;
 
-        // ✅ 401 에러이고, 재시도하지 않은 요청인 경우
+        // 401 에러이고, 재시도하지 않은 요청인 경우
         if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
             
             // refresh 요청 자체가 실패한 경우 로그아웃
             if (originalRequest.url?.includes('/auth/refresh')) {
                 localStorage.removeItem(LOCAL_STORAGE_KEY.accessToken);
                 localStorage.removeItem(LOCAL_STORAGE_KEY.refreshToken);
-                window.location.href = '/login';
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
+                }
                 return Promise.reject(error);
             }
 
-            // ✅ 이미 갱신 중이면 큐에 추가
+            // 이미 갱신 중이면 큐에 추가
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
@@ -93,22 +89,18 @@ axiosInstance.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEY.refreshToken);
+                const refreshTokenString = localStorage.getItem(LOCAL_STORAGE_KEY.refreshToken);
                 
-                if (!refreshToken || refreshToken === 'undefined' || refreshToken === 'null') {
+                if (!refreshTokenString || refreshTokenString === 'undefined' || refreshTokenString === 'null') {
                     throw new Error('No refresh token');
                 }
+                
+                // FIX: JSON.parse를 사용하여 따옴표가 제거된 실제 리프레시 토큰 값을 가져옵니다.
+                const refreshToken = JSON.parse(refreshTokenString);
 
-                let parsedRefreshToken = refreshToken;
-                try {
-                    parsedRefreshToken = JSON.parse(refreshToken);
-                } catch {
-                    parsedRefreshToken = refreshToken;
-                }
-
-                // ✅ refresh 토큰으로 새 토큰 발급
+                // refresh 토큰으로 새 토큰 발급
                 const { data } = await axiosInstance.post('/v1/auth/refresh', {
-                    refreshToken: parsedRefreshToken
+                    refreshToken: refreshToken 
                 });
 
                 const newAccessToken = data.data?.accessToken || data.accessToken;
@@ -124,6 +116,12 @@ axiosInstance.interceptors.response.use(
                     localStorage.setItem(LOCAL_STORAGE_KEY.refreshToken, JSON.stringify(newRefreshToken));
                 }
 
+                // storage 이벤트 트리거 (AuthContext가 감지하도록)
+                window.dispatchEvent(new StorageEvent('storage', {
+                    newValue: JSON.stringify(newAccessToken),
+                    storageArea: localStorage
+                }));
+
                 // 큐에 있는 요청들 처리
                 processQueue(null, newAccessToken);
 
@@ -136,7 +134,10 @@ axiosInstance.interceptors.response.use(
                 processQueue(refreshError as AxiosError, null);
                 localStorage.removeItem(LOCAL_STORAGE_KEY.accessToken);
                 localStorage.removeItem(LOCAL_STORAGE_KEY.refreshToken);
-                window.location.href = '/login';
+                
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
+                }
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;

@@ -1,3 +1,4 @@
+// src/pages/SignupPage.tsx
 import { z } from 'zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,9 +58,10 @@ const SignupPage = () => {
                 alert('회원가입이 완료되었습니다!');
                 navigate('/login');
             }
-        } catch (error) {
+        } catch (error: any) { // ✅ error 타입 명시
             console.error('Signup error:', error);
-            alert('회원가입에 실패했습니다. 다시 시도해주세요.');
+            const message = error.response?.data?.message || '회원가입에 실패했습니다. 이미 존재하는 이메일인지 확인해 주세요.'; // ✅ 409 Conflict에 대한 구체적인 메시지 추가
+            alert(message);
         }
     };
 

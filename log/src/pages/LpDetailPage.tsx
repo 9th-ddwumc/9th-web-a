@@ -1,3 +1,5 @@
+// src/pages/LpDetailPage.tsx
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -6,12 +8,16 @@ import useGetInfiniteComments from '../hooks/queries/useGetInfiniteComments';
 import { useCreateComment, useUpdateComment, useDeleteComment } from '../hooks/mutations/useCommentMutations';
 import { Loading, ErrorDisplay, EmptyState } from '../component/LoadingError';
 import { CommentSkeletonList } from '../component/skeletonUi';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { deleteLp, postLpLike } from '../apis/lp';
+import useGetMyInfo from '../hooks/queries/useGetMyInfo';
 
 interface CommentItem {
   id: number;
   content: string;
   createdAt: string;
-  author: {
+  // ✅ author 속성을 선택적으로 변경하여 데이터 안정성 확보
+  author?: { 
     id: number;
     name: string;
     avatar?: string;
@@ -22,12 +28,18 @@ const LpDetailPage = () => {
     const { lpid } = useParams<{ lpid: string }>();
     const navigate = useNavigate();
     const { accessToken } = useAuth();
+    const queryClient = useQueryClient();
+
     const [commentOrder, setCommentOrder] = useState<'asc' | 'desc'>('desc');
     const [newComment, setNewComment] = useState('');
     const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
     const [editingContent, setEditingContent] = useState('');
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
     const observerTarget = useRef<HTMLDivElement>(null);
+
+    // 내 정보 가져오기
+    const { data: myInfo } = useGetMyInfo(!!accessToken);
+    const myId = myInfo?.id; // 현재 사용자 ID (number | undefined)
 
     const { data, isPending, isError, error, refetch } = useGetLpDetail(lpid);
     
@@ -39,10 +51,79 @@ const LpDetailPage = () => {
         isFetchingNextPage,
     } = useGetInfiniteComments(lpid, commentOrder);
 
-    // ✅ 댓글 Mutations
+    // 댓글/LP Mutations
     const createCommentMutation = useCreateComment();
     const updateCommentMutation = useUpdateComment();
     const deleteCommentMutation = useDeleteComment();
+    
+    const deleteLpMutation = useMutation({
+        mutationFn: () => deleteLp(lpid!),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['lps'] });
+            queryClient.removeQueries({ queryKey: ['lp', lpid] });
+            alert('LP가 성공적으로 삭제되었습니다.');
+            navigate('/', { replace: true });
+        },
+        onError: (err: any) => {
+            alert(err.response?.data?.message || 'LP 삭제에 실패했습니다.');
+        },
+    });
+
+    const likeLpMutation = useMutation({
+        mutationFn: () => postLpLike(lpid!),
+        
+        // ✅ onMutate: 좋아요 낙관적 업데이트
+        onMutate: async () => {
+            // 현재 쿼리 취소
+            await queryClient.cancelQueries({ queryKey: ['lp', lpid] });
+            // 이전 데이터 스냅샷
+            const previousLpDetail = queryClient.getQueryData(['lp', lpid]);
+            
+            if (previousLpDetail && myId) {
+                queryClient.setQueryData(['lp', lpid], (old: any) => {
+                    const isCurrentlyLiked = old.likes?.some((like: any) => like.userId === myId);
+                    
+                    let newLikes = [...(old.likes || [])];
+                    
+                    if (isCurrentlyLiked) {
+                        // 좋아요 취소: 내 좋아요 객체 제거
+                        newLikes = newLikes.filter(like => like.userId !== myId);
+                    } else {
+                        // 좋아요 추가: 가짜 좋아요 객체 추가 (임시 ID 부여)
+                        newLikes = [
+                            ...newLikes, 
+                            { 
+                                id: Date.now(), // 임시 ID
+                                userId: myId, 
+                                lpId: old.id 
+                            }
+                        ];
+                    }
+
+                    return {
+                        ...old,
+                        likes: newLikes, // 좋아요 배열 업데이트 (개수와 상태가 반영됨)
+                    };
+                });
+            }
+
+            return { previousLpDetail };
+        },
+
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['lp', lpid] });
+        },
+        
+        // ✅ onError: 실패 시 롤백
+        onError: (err: any, variables, context) => {
+            alert(err.response?.data?.message || '좋아요 처리에 실패했습니다.');
+            // 롤백
+            if (context?.previousLpDetail) {
+                queryClient.setQueryData(['lp', lpid], context.previousLpDetail);
+            }
+        },
+    });
+
 
     // 무한 스크롤
     useEffect(() => {
@@ -75,9 +156,9 @@ const LpDetailPage = () => {
                     <p className="text-gray-300 mb-6">로그인이 필요한 서비스입니다.</p>
                     <button
                         onClick={() => navigate('/login', { state: { from: `/lp/${lpid}` } })}
-                        className="w-full px-6 py-3 bg-cyan-400 text-black font-medium rounded hover:bg-cyan-300"
+                        className="w-full px-6 py-3 bg-pink-500 text-white font-medium rounded hover:bg-pink-600 transition-colors"
                     >
-                        확인
+                        로그인하러 가기
                     </button>
                 </div>
             </div>
@@ -88,13 +169,34 @@ const LpDetailPage = () => {
     if (isError) return <ErrorDisplay message="LP를 불러오는데 실패했습니다." error={error} onRetry={refetch} />;
     if (!data) return <EmptyState message="LP를 찾을 수 없습니다." onAction={() => navigate('/')} />;
 
-    const handleEdit = () => console.log('수정');
-    const handleDelete = () => {
-        if (window.confirm('정말 삭제하시겠습니까?')) console.log('삭제');
-    };
-    const handleLike = () => console.log('좋아요');
+    const isAuthor = data.authorId === myId;
+    const isLiked = data.likes?.some(like => like.userId === myId);
 
-    // ✅ 댓글 작성
+    // LP 수정 페이지로 이동
+    const handleEdit = () => {
+        if (!isAuthor) return;
+        navigate(`/lp/${lpid}/edit`);
+    };
+
+    // LP 삭제 처리
+    const handleDelete = () => {
+        if (!isAuthor) return;
+        if (window.confirm('정말 이 LP를 삭제하시겠습니까?')) {
+            deleteLpMutation.mutate();
+        }
+    };
+    
+    // LP 좋아요/좋아요 취소 처리 (토글 기능)
+    const handleLike = () => {
+        if (!accessToken) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+        // postLpLike API는 좋아요/취소를 모두 처리하는 것으로 가정합니다.
+        likeLpMutation.mutate();
+    };
+
+    // 댓글 작성
     const handleCommentSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (newComment.trim().length < 1) {
@@ -111,14 +213,14 @@ const LpDetailPage = () => {
         );
     };
 
-    // ✅ 댓글 수정 시작
+    // 댓글 수정 시작
     const startEditing = (comment: CommentItem) => {
         setEditingCommentId(comment.id);
         setEditingContent(comment.content);
         setOpenMenuId(null);
     };
 
-    // ✅ 댓글 수정 완료
+    // 댓글 수정 완료
     const handleUpdateComment = (commentId: number) => {
         if (editingContent.trim().length < 1) {
             alert('댓글을 입력해주세요.');
@@ -135,7 +237,7 @@ const LpDetailPage = () => {
         );
     };
 
-    // ✅ 댓글 삭제
+    // 댓글 삭제
     const handleDeleteComment = (commentId: number) => {
         if (window.confirm('댓글을 삭제하시겠습니까?')) {
             deleteCommentMutation.mutate({ lpId: lpid!, commentId });
@@ -170,28 +272,40 @@ const LpDetailPage = () => {
             <section className="mb-8">
                 <div className="flex items-start justify-between gap-4">
                     <h1 className="text-4xl font-bold text-white flex-1">{data.title || '제목 없음'}</h1>
-                    <div className="flex gap-2">
-                        <button onClick={handleEdit} className="p-2 hover:bg-gray-800 rounded">✏️</button>
-                        <button onClick={handleDelete} className="p-2 hover:bg-gray-800 rounded">🗑️</button>
-                    </div>
+                    {/* 작성자에게만 수정/삭제 버튼 표시 */}
+                    {isAuthor && ( 
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={handleEdit} 
+                                className="p-2 hover:bg-gray-800 rounded transition-colors"
+                            >
+                                ✏️
+                            </button>
+                            <button 
+                                onClick={handleDelete} 
+                                disabled={deleteLpMutation.isPending}
+                                className="p-2 hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    )}
                 </div>
             </section>
 
-            {/* 썸네일 */}
+            {/* 썸네일, 본문, 태그 */}
             <section className="mb-8">
                 <div className="aspect-square max-w-2xl mx-auto rounded-lg overflow-hidden bg-gray-900 shadow-2xl">
                     <img src={data.thumbnail || 'https://via.placeholder.com/600'} alt={data.title} className="w-full h-full object-cover" />
                 </div>
             </section>
 
-            {/* 본문 */}
             <section className="mb-8">
                 <div className="bg-gray-900 rounded-lg p-6">
                     <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-lg">{data.content || '내용이 없습니다.'}</p>
                 </div>
             </section>
 
-            {/* 태그 */}
             {data.tags && data.tags.length > 0 && (
                 <section className="mb-8">
                     <div className="flex flex-wrap gap-2">
@@ -205,8 +319,14 @@ const LpDetailPage = () => {
             {/* 좋아요 */}
             <section className="border-t border-gray-800 pt-8 mb-12">
                 <div className="flex items-center justify-center">
-                    <button onClick={handleLike} className="flex items-center gap-3 px-8 py-3 bg-gray-800 hover:bg-pink-600 rounded-full">
-                        <span className="text-3xl">❤️</span>
+                    <button 
+                        onClick={handleLike} 
+                        disabled={likeLpMutation.isPending || !accessToken} 
+                        className={`flex items-center gap-3 px-8 py-3 rounded-full transition-colors disabled:opacity-50 ${
+                            isLiked ? 'bg-pink-600 hover:bg-pink-700' : 'bg-gray-800 hover:bg-gray-700'
+                        }`}
+                    >
+                        <span className="text-3xl">{isLiked ? '💖' : '🤍'}</span> 
                         <span className="text-2xl font-semibold text-white">{data.likes?.length || 0}</span>
                     </button>
                 </div>
@@ -263,8 +383,8 @@ const LpDetailPage = () => {
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between mb-1">
                                             <p className="font-medium text-white">{comment.author?.name || '익명'}</p>
-                                            {/* ✅ 본인 댓글만 메뉴 표시 */}
-                                            {comment.author?.id && (
+                                            {/* ✅ 본인 댓글만 메뉴 표시 (myId와 댓글 작성자 ID 비교) */}
+                                            {comment.author?.id === myId && ( 
                                                 <div className="relative">
                                                     <button
                                                         onClick={() => setOpenMenuId(openMenuId === comment.id ? null : comment.id)}

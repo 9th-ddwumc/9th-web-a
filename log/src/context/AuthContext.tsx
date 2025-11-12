@@ -1,3 +1,4 @@
+// src/context/AuthContext.tsx
 import { createContext, useContext, useState, useEffect, type PropsWithChildren } from "react";
 import { postSignin, postLogout } from "../apis/auth";
 import type { ResponseSigninDto, RequestSigninDto } from "../types/auth"; 
@@ -9,7 +10,7 @@ interface AuthContextType {
     refreshToken: string | null;
     login(signinData: RequestSigninDto): Promise<void>;
     logout(): Promise<void>;
-    // ✅ setTokens 함수 시그니처 추가
+    // setTokens 함수 시그니처 추가
     setTokens(accessToken: string, refreshToken: string): void;
 }
 
@@ -19,7 +20,7 @@ export const AuthContext = createContext<AuthContextType>({
     // login 기본값 수정 (AuthContextType과 일치하도록)
     login: async () => {},
     logout: async () => {},
-    // ✅ setTokens 기본값 추가
+    // setTokens 기본값 추가
     setTokens: () => {},
 });
 
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         return token;
     });
 
-    // ✅ localStorage 변경 감지 (구글 로그인용)
+    // localStorage 변경 감지 (구글 로그인용)
     useEffect(() => {
         const handleStorageChange = (e: StorageEvent) => {
             if (e.key === LOCAL_STORAGE_KEY.accessToken) {
@@ -75,7 +76,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         };
     }, []);
 
-    // ✅ 초기화 시 잘못된 토큰 정리
+    // 초기화 시 잘못된 토큰 정리
     useEffect(() => {
         const cleanupInvalidTokens = () => {
             const accessTokenValue = localStorage.getItem(LOCAL_STORAGE_KEY.accessToken);
@@ -99,7 +100,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         cleanupInvalidTokens();
     }, []);
 
-    // ✅ 토큰 직접 설정 함수 (구글 로그인용)
+    // 토큰 직접 설정 함수 (구글 로그인용)
     const setTokens = (newAccessToken: string, newRefreshToken: string) => {
         setAccessToken(newAccessToken);
         setRefreshToken(newRefreshToken);
@@ -107,16 +108,16 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         setRefreshTokenState(newRefreshToken);
     };
 
-    // ✅ 로그인 함수 (useMutation 적용으로 더미 함수로 변경되거나, setTokens 호출만 남을 수 있음)
-    // 여기서는 기존 구현을 유지합니다. 실제 로그인 로직은 LoginPage.tsx의 useMutation에서 처리합니다.
+    // 로그인 함수
     const login = async (signinData: RequestSigninDto) => {
         try {
             const response: ResponseSigninDto = await postSignin(signinData);
             
             console.log('Login response:', response);
             
-            const newAccessToken = response.accessToken;
-            const newRefreshToken = response.refreshToken;
+            // ✅ 토큰 접근 로직 수정: response.accessToken/refreshToken 또는 response.data.accessToken/refreshToken 확인
+            const newAccessToken = response.accessToken || response.data?.accessToken;
+            const newRefreshToken = response.refreshToken || response.data?.refreshToken;
             
             if (!newAccessToken || !newRefreshToken) {
                 throw new Error('토큰이 응답에 포함되지 않았습니다.');
@@ -150,7 +151,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     };
 
     return (
-        // ✅ setTokens 함수를 value에 추가
+        // setTokens 함수를 value에 추가
         <AuthContext.Provider value={{ accessToken, refreshToken, login, logout, setTokens }}>
             {children}
         </AuthContext.Provider>

@@ -1,6 +1,6 @@
-// log/src/apis/auth.ts
+// src/apis/auth.ts
 
-import type { CommonResponse } from "../types/common"; // ✅ CommonResponse는 common.ts에서
+import type { CommonResponse } from "../types/common";
 import type { 
     RequestSigninDto, 
     RequestSignupDto, 
@@ -8,7 +8,7 @@ import type {
     ResponseSigninDto, 
     ResponseSignupDto,
     RequestUserUpdateDto
-} from "../types/auth"; // ✅ 나머지 auth 관련 타입은 types/auth에서
+} from "../types/auth";
 import { axiosInstance } from "./axios";
 
 export const postSignup = async (body: RequestSignupDto): Promise<ResponseSignupDto> => {
@@ -18,6 +18,7 @@ export const postSignup = async (body: RequestSignupDto): Promise<ResponseSignup
 
 export const postSignin = async (body: RequestSigninDto): Promise<ResponseSigninDto> => {
     const { data } = await axiosInstance.post('/v1/auth/signin', body);
+    // 응답 객체 전체를 반환하여 AuthContext에서 유연하게 토큰을 찾도록 함
     return data; 
 }
 

@@ -1,3 +1,5 @@
+// src/pages/GoogleLoginRedirectPage.tsx
+
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -12,11 +14,11 @@ const GoogleLoginRedirectPage = () => {
     useEffect(() => {
         const processGoogleLogin = async () => {
             try {
-                // ✅ 전체 URL 로그 출력
+                // 전체 URL 로그 출력
                 console.log('Current URL:', window.location.href);
                 console.log('Search Params:', Object.fromEntries(searchParams.entries()));
                 
-                // ✅ URL 쿼리 파라미터에서 토큰 가져오기
+                // URL 쿼리 파라미터에서 토큰 가져오기
                 const accessToken = searchParams.get('accessToken');
                 const refreshToken = searchParams.get('refreshToken');
                 
@@ -32,7 +34,7 @@ const GoogleLoginRedirectPage = () => {
                     return;
                 }
 
-                // ✅ 토큰 저장 (AuthContext 사용)
+                // 토큰 저장 (AuthContext 사용)
                 setTokens(accessToken, refreshToken);
                 
                 console.log('Tokens saved successfully');
@@ -40,12 +42,13 @@ const GoogleLoginRedirectPage = () => {
                 setStatus('success');
                 setMessage('로그인 성공! 잠시만 기다려주세요...');
                 
-                // ✅ 원래 페이지로 리다이렉트
+                // ✅ 리다이렉션 경로 처리
                 const redirectPath = sessionStorage.getItem('loginRedirect') || '/';
                 sessionStorage.removeItem('loginRedirect');
                 
+                // ✅ 1.5초 후 navigate 호출
                 setTimeout(() => {
-                    navigate(redirectPath, { replace: true });
+                    navigate(redirectPath, { replace: true }); 
                 }, 1500);
                 
             } catch (error) {
@@ -60,6 +63,8 @@ const GoogleLoginRedirectPage = () => {
 
         processGoogleLogin();
     }, [searchParams, navigate, setTokens]);
+
+    // ... (렌더링 UI 코드는 생략하지 않습니다)
 
     return (
         <div className="min-h-screen bg-black flex items-center justify-center p-6">
