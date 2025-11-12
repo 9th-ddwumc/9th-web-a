@@ -1,6 +1,6 @@
 // hooks/queries/useGetMyInfo.ts
 import { useQuery } from "@tanstack/react-query";
-import { getMyInfo } from "../../apis/auth";  // ✅ apis/auth에서 import
+import { getMyInfo } from "../../apis/auth";  
 import type { ResponseMyInfo } from "../../types/auth";
 
 function useGetMyInfo(enabled: boolean = true) {

@@ -9,6 +9,7 @@ interface AuthContextType {
     refreshToken: string | null;
     login(signinData: RequestSigninDto): Promise<void>;
     logout(): Promise<void>;
+    // ✅ setTokens 함수 시그니처 추가
     setTokens(accessToken: string, refreshToken: string): void;
 }
 
@@ -18,6 +19,7 @@ export const AuthContext = createContext<AuthContextType>({
     // login 기본값 수정 (AuthContextType과 일치하도록)
     login: async () => {},
     logout: async () => {},
+    // ✅ setTokens 기본값 추가
     setTokens: () => {},
 });
 
@@ -105,16 +107,14 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         setRefreshTokenState(newRefreshToken);
     };
 
+    // ✅ 로그인 함수 (useMutation 적용으로 더미 함수로 변경되거나, setTokens 호출만 남을 수 있음)
+    // 여기서는 기존 구현을 유지합니다. 실제 로그인 로직은 LoginPage.tsx의 useMutation에서 처리합니다.
     const login = async (signinData: RequestSigninDto) => {
         try {
-            // postSignin은 ResponseSigninDto를 반환합니다.
-            // response 타입을 ResponseSigninDto로 명시합니다.
             const response: ResponseSigninDto = await postSignin(signinData);
             
             console.log('Login response:', response);
             
-            // postSignin이 이미 ResponseSigninDto를 반환하므로,
-            // response에서 직접 accessToken과 refreshToken을 추출합니다.
             const newAccessToken = response.accessToken;
             const newRefreshToken = response.refreshToken;
             
@@ -150,6 +150,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     };
 
     return (
+        // ✅ setTokens 함수를 value에 추가
         <AuthContext.Provider value={{ accessToken, refreshToken, login, logout, setTokens }}>
             {children}
         </AuthContext.Provider>

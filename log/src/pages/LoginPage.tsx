@@ -3,15 +3,20 @@ import useForm from "../hooks/useForm";
 import { validateSignin, type UserSignInformation } from "../utils/validate";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query"; 
+// ❌ 기존: import { postSignin, type RequestSigninDto } from "../apis/auth";
+// ✅ 수정: postSignin은 apis/auth에서, RequestSigninDto는 types/auth에서 가져옵니다.
+import { postSignin } from "../apis/auth"; 
+import type { RequestSigninDto } from "../types/auth";
 
 const LoginPage = () => {
-    const { login, accessToken } = useAuth();
+    // ✅ login 대신 setTokens 사용
+    const { accessToken, setTokens } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     
-    // ✅ 이전 페이지 경로, 없으면 홈으로
+    // 이전 페이지 경로, 없으면 홈으로
     const from = (location.state as any)?.from || '/';
     
     // 이미 로그인된 경우 리다이렉트
@@ -28,26 +33,37 @@ const LoginPage = () => {
         },
         validate: validateSignin,
     });
+    
+    // ✅ 로그인 useMutation 구현
+    const loginMutation = useMutation({
+        mutationFn: (data: RequestSigninDto) => postSignin(data),
+        onSuccess: (data) => {
+            const newAccessToken = data.accessToken;
+            const newRefreshToken = data.refreshToken;
 
-    const handleSubmit = async () => {
-        if (isLoading) return;
-        
-        setErrorMessage('');
-        setIsLoading(true);
-        
-        try {
-            await login(values);
-            // ✅ 로그인 성공 시 이전 페이지로 이동
-            navigate(from, { replace: true });
-        } catch (error: any) {
+            if (newAccessToken && newRefreshToken) {
+                setTokens(newAccessToken, newRefreshToken);
+                // 로그인 성공 시 이전 페이지로 이동
+                navigate(from, { replace: true });
+            } else {
+                setErrorMessage('로그인에 실패했습니다. (토큰 정보 부족)');
+            }
+        },
+        onError: (error: any) => {
             console.error('Login failed:', error);
             const message = error.response?.data?.message || 
                            error.message || 
                            '로그인에 실패했습니다.';
             setErrorMessage(message);
-        } finally {
-            setIsLoading(false);
-        }
+        },
+    });
+
+
+    const handleSubmit = async () => {
+        if (loginMutation.isPending) return;
+        
+        setErrorMessage('');
+        loginMutation.mutate(values); // ✅ useMutation 실행
     };
 
     const handleGoBack = () => {
@@ -55,13 +71,15 @@ const LoginPage = () => {
     };
 
     const handleGoogleLogin = () => {
-    sessionStorage.setItem('loginRedirect', from);
-    // ✅ 서버 URL 확인
-    const serverUrl = import.meta.env.VITE_SERVER_API_URL;
-    console.log('Google Login URL:', `${serverUrl}v1/auth/google/login`);
-    window.location.href = `${serverUrl}v1/auth/google/login`;
-};
+        sessionStorage.setItem('loginRedirect', from);
+        // 서버 URL 확인
+        const serverUrl = import.meta.env.VITE_SERVER_API_URL;
+        console.log('Google Login URL:', `${serverUrl}v1/auth/google/login`);
+        window.location.href = `${serverUrl}v1/auth/google/login`;
+    };
 
+    // ✅ isLoading 상태를 useMutation에서 가져옴
+    const isLoading = loginMutation.isPending; 
     const isDisabled = 
         isLoading ||
         Object.values(errors).some((error) => error.length > 0) || 

@@ -1,4 +1,3 @@
-// hooks/queries/useGetInfiniteLpList.ts
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { PAGINATION_ORDER_TYPE } from "../../enums/commmons";
 import { axiosInstance } from "../../apis/axios";

@@ -1,6 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import useGetMyInfo from "../hooks/queries/useGetMyInfo";
+// ✅ useMutation, postLogout import
+import { useMutation } from "@tanstack/react-query";
+import { postLogout } from "../apis/auth";
 
 interface NavbarProps {
     onMenuClick: () => void;
@@ -8,14 +11,30 @@ interface NavbarProps {
 
 const Navbar = ({ onMenuClick }: NavbarProps) => {
     const navigate = useNavigate();
-    const { accessToken, logout } = useAuth();  // ✅ logout 함수 가져오기
+    const { accessToken, logout } = useAuth();  // logout은 클라이언트 상태 초기화만 담당
     
-    // ✅ useQuery로 사용자 정보 가져오기
+    // useQuery로 사용자 정보 가져오기
     const { data: userInfo } = useGetMyInfo(!!accessToken);
     
-    const handleLogout = async () => {
-        await logout();
-        navigate('/login');
+    // ✅ 로그아웃 Mutation 구현
+    const logoutMutation = useMutation({
+        mutationFn: postLogout,
+        onSuccess: async () => {
+            // 서버에서 로그아웃 성공 후, 클라이언트 상태 정리
+            await logout();
+            navigate('/login');
+        },
+        onError: (error) => {
+            console.error("Logout mutation failed, proceeding with client cleanup:", error);
+            // 에러 발생해도 클라이언트 상태는 정리
+            logout();
+            navigate('/login');
+        }
+    });
+
+    const handleLogout = () => {
+        // ✅ Mutation 실행
+        logoutMutation.mutate();
     };
     
     return (
@@ -72,12 +91,13 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                             >
                                 마이페이지
                             </Link>
-                            {/* ✅ 로그아웃 버튼 추가 */}
+                            {/* ✅ 로그아웃 버튼에 핸들러 및 로딩 상태 적용 */}
                             <button 
                                 onClick={handleLogout}
+                                disabled={logoutMutation.isPending}
                                 className="px-4 py-2 text-white hover:text-pink-500 transition-colors text-sm"
                             >
-                                로그아웃
+                                {logoutMutation.isPending ? '처리 중...' : '로그아웃'}
                             </button>
                         </div>
                     )}
