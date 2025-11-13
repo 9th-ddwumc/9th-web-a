@@ -10,17 +10,14 @@ interface AuthContextType {
     refreshToken: string | null;
     login(signinData: RequestSigninDto): Promise<void>;
     logout(): Promise<void>;
-    // setTokens 함수 시그니처 추가
     setTokens(accessToken: string, refreshToken: string): void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
     accessToken: null,
     refreshToken: null,
-    // login 기본값 수정 (AuthContextType과 일치하도록)
     login: async () => {},
     logout: async () => {},
-    // setTokens 기본값 추가
     setTokens: () => {},
 });
 
@@ -108,14 +105,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         setRefreshTokenState(newRefreshToken);
     };
 
-    // 로그인 함수
+    // ✅ 로그인 함수 - 동기적으로 state 업데이트 보장
     const login = async (signinData: RequestSigninDto) => {
         try {
             const response: ResponseSigninDto = await postSignin(signinData);
             
             console.log('Login response:', response);
             
-            // ✅ 토큰 접근 로직 수정: response.accessToken/refreshToken 또는 response.data.accessToken/refreshToken 확인
             const newAccessToken = response.accessToken || response.data?.accessToken;
             const newRefreshToken = response.refreshToken || response.data?.refreshToken;
             
@@ -123,12 +119,19 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
                 throw new Error('토큰이 응답에 포함되지 않았습니다.');
             }
 
+            // ✅ localStorage 저장
             setAccessToken(newAccessToken);
             setRefreshToken(newRefreshToken);
-            setAccessTokenState(newAccessToken);
-            setRefreshTokenState(newRefreshToken);
+            
+            // ✅ state 업데이트 - React가 이를 동기적으로 처리하도록 강제
+            await new Promise<void>((resolve) => {
+                setAccessTokenState(newAccessToken);
+                setRefreshTokenState(newRefreshToken);
+                // state 업데이트가 완료될 때까지 대기
+                setTimeout(resolve, 0);
+            });
 
-            console.log('로그인 성공');
+            console.log('로그인 성공 - 토큰 저장 완료');
         } catch (error) {
             console.error('Login error in AuthContext:', error);
             throw error;
@@ -151,7 +154,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     };
 
     return (
-        // setTokens 함수를 value에 추가
         <AuthContext.Provider value={{ accessToken, refreshToken, login, logout, setTokens }}>
             {children}
         </AuthContext.Provider>

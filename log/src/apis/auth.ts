@@ -1,5 +1,4 @@
 // src/apis/auth.ts
-
 import type { CommonResponse } from "../types/common";
 import type { 
     RequestSigninDto, 
@@ -18,7 +17,6 @@ export const postSignup = async (body: RequestSignupDto): Promise<ResponseSignup
 
 export const postSignin = async (body: RequestSigninDto): Promise<ResponseSigninDto> => {
     const { data } = await axiosInstance.post('/v1/auth/signin', body);
-    // 응답 객체 전체를 반환하여 AuthContext에서 유연하게 토큰을 찾도록 함
     return data; 
 }
 
@@ -40,12 +38,14 @@ export const postLogout = async (): Promise<void> => {
     await axiosInstance.post('/v1/auth/logout');
 }
 
+// ✅ PATCH /v1/users (유저 정보 수정)
 export const putUserMe = async (body: RequestUserUpdateDto): Promise<ResponseMyInfo> => {
-    const { data } = await axiosInstance.put('/v1/users/me', body);
+    const { data } = await axiosInstance.patch('/v1/users', body);
     return data;
 }
 
+// ✅ DELETE /v1/users (회원 탈퇴)
 export const deleteUser = async(): Promise<CommonResponse> => {
-    const { data } = await axiosInstance.delete('/v1/users/me');
+    const { data } = await axiosInstance.delete('/v1/users');
     return data;
 }

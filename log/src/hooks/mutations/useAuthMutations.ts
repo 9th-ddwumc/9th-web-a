@@ -1,8 +1,8 @@
 // src/hooks/mutations/useAuthMutations.ts
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { axiosInstance } from '../../apis/axios';
+import { deleteUser } from '../../apis/auth';
 import type { RequestSigninDto } from '../../types/auth';
 
 // 로그인 Mutation
@@ -13,11 +13,8 @@ export const useLoginMutation = (redirectPath: string = '/') => {
   return useMutation({
     mutationFn: async (data: RequestSigninDto) => {
       await login(data);
-      // ✅ localStorage와 state 동기화를 위해 충분한 대기 시간
-      await new Promise(resolve => setTimeout(resolve, 200));
     },
     onSuccess: () => {
-      // ✅ replace: true로 뒤로가기 방지
       navigate(redirectPath, { replace: true });
     },
     onError: (error: any) => {
@@ -48,23 +45,31 @@ export const useLogoutMutation = () => {
   });
 };
 
-// 회원 탈퇴 Mutation
+// ✅ 회원 탈퇴 Mutation - DELETE /v1/users
 export const useDeleteAccountMutation = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
-      const response = await axiosInstance.delete('/v1/users/me');
-      return response.data;
+      return await deleteUser();
     },
     onSuccess: async () => {
+      // 모든 쿼리 캐시 삭제
+      queryClient.clear();
+      
+      // 로그아웃 처리
       await logout();
+      
+      // 알림 및 리다이렉트
       alert('회원 탈퇴가 완료되었습니다.');
       navigate('/login', { replace: true });
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || '회원 탈퇴에 실패했습니다.');
+      console.error('Delete account error:', error);
+      const message = error.response?.data?.message || '회원 탈퇴에 실패했습니다.';
+      alert(message);
     },
   });
 };

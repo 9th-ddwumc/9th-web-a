@@ -11,9 +11,10 @@ interface NavbarProps {
 
 const Navbar = ({ onMenuClick }: NavbarProps) => {
     const { accessToken } = useAuth();
+    
+    // ✅ useGetMyInfo가 쿼리 캐시를 구독하므로 자동으로 업데이트됨
     const { data: userInfo } = useGetMyInfo(!!accessToken);
     
-    // 로그아웃 Mutation
     const logoutMutation = useLogoutMutation();
     
     const handleLogout = () => {
@@ -26,10 +27,9 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
         <nav className="bg-black border-b border-gray-800 sticky top-0 z-50">
             <div className="max-w-[1920px] mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    {/* ✅ 버거 아이콘 클릭 시 onMenuClick 호출 */}
                     <button
                         onClick={onMenuClick}
-                        className="lg:hidden p-2 hover:bg-gray-800 rounded text-white" // text-white 추가
+                        className="lg:hidden p-2 hover:bg-gray-800 rounded text-white"
                         aria-label="메뉴"
                     >
                         <svg width="24" height="24" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -45,7 +45,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                 <div className="flex items-center gap-4">
                     <Link 
                         to="/search"
-                        className="text-xl p-2 hover:bg-gray-800 rounded transition-colors text-white" // text-white 추가
+                        className="text-xl p-2 hover:bg-gray-800 rounded transition-colors text-white"
                         aria-label="검색"
                     >
                         🔍
@@ -68,6 +68,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                         </>
                     ) : (
                         <div className="flex items-center gap-4">
+                            {/* ✅ userInfo.name이 변경되면 즉시 반영됨 */}
                             <span className="text-gray-300 hidden sm:block text-sm">
                                 {userInfo?.name || '사용자'}님 반갑습니다.
                             </span>

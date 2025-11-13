@@ -39,10 +39,9 @@ export type ResponseMyInfo = CommonResponse & {
     bio: string | null;
     avatar: string | null;
 }
-
 export type RequestUserUpdateDto = {
     name?: string;
-    bio?: string | null;
+    bio?: string | null; // ✅ null 허용
     avatar?: string | null;
 }
 

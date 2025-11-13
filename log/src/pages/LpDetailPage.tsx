@@ -16,7 +16,6 @@ interface CommentItem {
   id: number;
   content: string;
   createdAt: string;
-  // ✅ author 속성을 선택적으로 변경하여 데이터 안정성 확보
   author?: { 
     id: number;
     name: string;
@@ -37,9 +36,8 @@ const LpDetailPage = () => {
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
     const observerTarget = useRef<HTMLDivElement>(null);
 
-    // 내 정보 가져오기
     const { data: myInfo } = useGetMyInfo(!!accessToken);
-    const myId = myInfo?.id; // 현재 사용자 ID (number | undefined)
+    const myId = myInfo?.id;
 
     const { data, isPending, isError, error, refetch } = useGetLpDetail(lpid);
     
@@ -51,7 +49,6 @@ const LpDetailPage = () => {
         isFetchingNextPage,
     } = useGetInfiniteComments(lpid, commentOrder);
 
-    // 댓글/LP Mutations
     const createCommentMutation = useCreateComment();
     const updateCommentMutation = useUpdateComment();
     const deleteCommentMutation = useDeleteComment();
@@ -69,61 +66,46 @@ const LpDetailPage = () => {
         },
     });
 
+    // ✅ 좋아요 Mutation - 완전 수정
     const likeLpMutation = useMutation({
         mutationFn: () => postLpLike(lpid!),
-        
-        // ✅ onMutate: 좋아요 낙관적 업데이트
         onMutate: async () => {
-            // 현재 쿼리 취소
             await queryClient.cancelQueries({ queryKey: ['lp', lpid] });
-            // 이전 데이터 스냅샷
-            const previousLpDetail = queryClient.getQueryData(['lp', lpid]);
-            
-            if (previousLpDetail && myId) {
-                queryClient.setQueryData(['lp', lpid], (old: any) => {
-                    const isCurrentlyLiked = old.likes?.some((like: any) => like.userId === myId);
-                    
-                    let newLikes = [...(old.likes || [])];
-                    
-                    if (isCurrentlyLiked) {
-                        // 좋아요 취소: 내 좋아요 객체 제거
-                        newLikes = newLikes.filter(like => like.userId !== myId);
-                    } else {
-                        // 좋아요 추가: 가짜 좋아요 객체 추가 (임시 ID 부여)
-                        newLikes = [
-                            ...newLikes, 
-                            { 
-                                id: Date.now(), // 임시 ID
-                                userId: myId, 
-                                lpId: old.id 
-                            }
-                        ];
-                    }
 
-                    return {
-                        ...old,
-                        likes: newLikes, // 좋아요 배열 업데이트 (개수와 상태가 반영됨)
-                    };
+            const previousLp = queryClient.getQueryData(['lp', lpid]);
+
+            if (data && myId) {
+                const isCurrentlyLiked = data.likes?.some(like => like.userId === myId);
+                
+                const newLikes = isCurrentlyLiked
+                    ? data.likes?.filter(like => like.userId !== myId)
+                    : [...(data.likes || []), { id: Date.now(), userId: myId, lpId: data.id }];
+
+                queryClient.setQueryData(['lp', lpid], {
+                    ...data,
+                    likes: newLikes,
                 });
             }
 
-            return { previousLpDetail };
+            return { previousLp };
         },
-
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['lp', lpid] });
         },
-        
-        // ✅ onError: 실패 시 롤백
-        onError: (err: any, variables, context) => {
-            alert(err.response?.data?.message || '좋아요 처리에 실패했습니다.');
-            // 롤백
-            if (context?.previousLpDetail) {
-                queryClient.setQueryData(['lp', lpid], context.previousLpDetail);
+        onError: (err: any, _variables, context) => {
+            if (err.response?.status === 409) {
+                queryClient.invalidateQueries({ queryKey: ['lp', lpid] });
+                return;
             }
+            
+            if (context?.previousLp) {
+                queryClient.setQueryData(['lp', lpid], context.previousLp);
+            }
+            
+            console.error('Like error:', err);
+            alert(err.response?.data?.message || '좋아요 처리에 실패했습니다.');
         },
     });
-
 
     // 무한 스크롤
     useEffect(() => {
@@ -172,13 +154,11 @@ const LpDetailPage = () => {
     const isAuthor = data.authorId === myId;
     const isLiked = data.likes?.some(like => like.userId === myId);
 
-    // LP 수정 페이지로 이동
     const handleEdit = () => {
         if (!isAuthor) return;
         navigate(`/lp/${lpid}/edit`);
     };
 
-    // LP 삭제 처리
     const handleDelete = () => {
         if (!isAuthor) return;
         if (window.confirm('정말 이 LP를 삭제하시겠습니까?')) {
@@ -186,13 +166,18 @@ const LpDetailPage = () => {
         }
     };
     
-    // LP 좋아요/좋아요 취소 처리 (토글 기능)
+    // ✅ handleLike - 중복 클릭 방지
     const handleLike = () => {
         if (!accessToken) {
             alert('로그인이 필요합니다.');
+            navigate('/login', { state: { from: `/lp/${lpid}` } });
             return;
         }
-        // postLpLike API는 좋아요/취소를 모두 처리하는 것으로 가정합니다.
+        
+        if (likeLpMutation.isPending) {
+            return;
+        }
+        
         likeLpMutation.mutate();
     };
 
@@ -272,7 +257,6 @@ const LpDetailPage = () => {
             <section className="mb-8">
                 <div className="flex items-start justify-between gap-4">
                     <h1 className="text-4xl font-bold text-white flex-1">{data.title || '제목 없음'}</h1>
-                    {/* 작성자에게만 수정/삭제 버튼 표시 */}
                     {isAuthor && ( 
                         <div className="flex gap-2">
                             <button 
@@ -293,19 +277,21 @@ const LpDetailPage = () => {
                 </div>
             </section>
 
-            {/* 썸네일, 본문, 태그 */}
+            {/* 썸네일 */}
             <section className="mb-8">
                 <div className="aspect-square max-w-2xl mx-auto rounded-lg overflow-hidden bg-gray-900 shadow-2xl">
                     <img src={data.thumbnail || 'https://via.placeholder.com/600'} alt={data.title} className="w-full h-full object-cover" />
                 </div>
             </section>
 
+            {/* 본문 */}
             <section className="mb-8">
                 <div className="bg-gray-900 rounded-lg p-6">
                     <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-lg">{data.content || '내용이 없습니다.'}</p>
                 </div>
             </section>
 
+            {/* 태그 */}
             {data.tags && data.tags.length > 0 && (
                 <section className="mb-8">
                     <div className="flex flex-wrap gap-2">
@@ -316,13 +302,13 @@ const LpDetailPage = () => {
                 </section>
             )}
 
-            {/* 좋아요 */}
+            {/* ✅ 좋아요 */}
             <section className="border-t border-gray-800 pt-8 mb-12">
                 <div className="flex items-center justify-center">
                     <button 
                         onClick={handleLike} 
-                        disabled={likeLpMutation.isPending || !accessToken} 
-                        className={`flex items-center gap-3 px-8 py-3 rounded-full transition-colors disabled:opacity-50 ${
+                        disabled={likeLpMutation.isPending || !accessToken}
+                        className={`flex items-center gap-3 px-8 py-3 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                             isLiked ? 'bg-pink-600 hover:bg-pink-700' : 'bg-gray-800 hover:bg-gray-700'
                         }`}
                     >
@@ -383,7 +369,6 @@ const LpDetailPage = () => {
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between mb-1">
                                             <p className="font-medium text-white">{comment.author?.name || '익명'}</p>
-                                            {/* ✅ 본인 댓글만 메뉴 표시 (myId와 댓글 작성자 ID 비교) */}
                                             {comment.author?.id === myId && ( 
                                                 <div className="relative">
                                                     <button

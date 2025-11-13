@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import useGetMyInfo from "../hooks/queries/useGetMyInfo";
 import { useUpdateProfileMutation } from "../hooks/mutations/useUserMutations";
 import { Loading, ErrorDisplay } from "../component/LoadingError"; 
+import type { RequestUserUpdateDto } from "../types/auth";
 
 const MyPage = () => {
     const navigate = useNavigate();
@@ -13,13 +14,12 @@ const MyPage = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState('');
     const [bio, setBio] = useState('');
-    const [avatarFile, setAvatarFile] = useState<File | null>(null); 
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [initialAvatarUrl, setInitialAvatarUrl] = useState<string | null>(null); // 초기 아바타 URL 저장
     
     const { data: userInfo, isPending, isError, refetch } = useGetMyInfo(!!accessToken);
-    const updateProfileMutation = useUpdateProfileMutation(); 
-    
+    const updateProfileMutation = useUpdateProfileMutation();
+
     // 수정 모드 시작
     const handleStartEdit = () => {
         if (userInfo) {
@@ -27,7 +27,6 @@ const MyPage = () => {
             setBio(userInfo.bio || '');
             setAvatarFile(null); 
             setPreviewUrl(userInfo.avatar || null); 
-            setInitialAvatarUrl(userInfo.avatar || null); // 초기값 저장
             setIsEditing(true);
         }
     };
@@ -42,52 +41,39 @@ const MyPage = () => {
                 setPreviewUrl(reader.result as string);
             };
             reader.readAsDataURL(file);
-        } else {
-            // 파일을 선택 취소한 경우 (input reset 또는 같은 파일 재선택)
+        }
+    };
+
+    // src/pages/MyPage.tsx 중 handleSaveProfile 함수만 수정
+
+// ✅ 프로필 저장
+// src/pages/MyPage.tsx 중 handleSaveProfile 함수만 수정
+
+    // src/pages/MyPage.tsx 중 handleSaveProfile만 수정
+
+const handleSaveProfile = () => {
+    if (!name.trim()) {
+        alert('이름을 입력해주세요.');
+        return;
+    }
+
+    // ✅ 서버 API에 맞는 형식으로 전송
+    const updateData: RequestUserUpdateDto = {
+        name: name.trim(),
+        bio: bio.trim() || null,
+        avatar: null, // 이미지 업로드는 별도 API 필요
+    };
+
+    console.log('Sending update data:', updateData);
+
+    updateProfileMutation.mutate(updateData, {
+        onSuccess: () => {
+            setIsEditing(false);
             setAvatarFile(null);
-            setPreviewUrl(initialAvatarUrl); 
-        }
-    };
+        },
+    });
+};
 
-    // 아바타 미리보기 제거 버튼
-    const handleRemoveAvatar = () => {
-        setAvatarFile(null); 
-        setPreviewUrl(null); 
-    };
-    
-    // 프로필 저장
-    const handleSaveProfile = () => {
-        if (!name.trim()) {
-            alert('이름을 입력해주세요.');
-            return;
-        }
-
-        const updateData = {
-            name: name.trim(),
-            bio: bio.trim() || null,
-            avatarFile: avatarFile, 
-            // 아바타 URL 제거 요청 여부 (boolean)
-            avatarUrlToRemove: !!(initialAvatarUrl && previewUrl === null && avatarFile === null),
-        };
-        
-        updateProfileMutation.mutate(
-            updateData,
-            {
-                onSuccess: (data) => {
-                    setIsEditing(false);
-                    setAvatarFile(null);
-                    // 서버 응답에서 최종 아바타 URL을 받아 initialAvatarUrl 업데이트
-                    setInitialAvatarUrl(data.avatar || null); 
-                },
-                onError: () => {
-                    setIsEditing(false); 
-                    setAvatarFile(null);
-                    setPreviewUrl(initialAvatarUrl); 
-                }
-            }
-        );
-    };
-    
     if (isPending) {
         return <Loading message="프로필 정보를 불러오는 중..." />;
     }
@@ -171,11 +157,7 @@ const MyPage = () => {
                                 <div className="flex flex-col items-center gap-4">
                                     <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-700 border-2 border-pink-500">
                                         {previewUrl ? (
-                                            <img 
-                                                src={previewUrl} 
-                                                alt="Preview" 
-                                                className="w-full h-full object-cover" 
-                                            />
+                                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
                                                 <span className="text-4xl font-bold text-white">
@@ -190,16 +172,6 @@ const MyPage = () => {
                                         onChange={handleFileChange}
                                         className="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-pink-500 file:text-white file:cursor-pointer hover:file:bg-pink-600" 
                                     />
-                                    {/* 아바타 제거 버튼 (기존 URL이 있었거나 새 파일이 있는 경우) */}
-                                    {(initialAvatarUrl || avatarFile) && (
-                                        <button
-                                            type="button"
-                                            onClick={handleRemoveAvatar}
-                                            className="text-sm text-red-400 hover:text-red-300 transition-colors"
-                                        >
-                                            아바타 제거
-                                        </button>
-                                    )}
                                     <p className="text-xs text-gray-500">프로필 사진 (선택사항)</p>
                                 </div>
 
@@ -238,7 +210,7 @@ const MyPage = () => {
                                         onClick={() => {
                                             setIsEditing(false);
                                             setAvatarFile(null);
-                                            setPreviewUrl(initialAvatarUrl); // 취소 시 초기 URL로 복원
+                                            setPreviewUrl(null);
                                         }}
                                         className="flex-1 px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium" 
                                     >
