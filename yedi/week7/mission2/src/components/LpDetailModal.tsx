@@ -371,7 +371,6 @@ function CommentForm({ lpid }: { lpid: string }) {
     </form>
   );
 }
-// ---
 
 interface LpDetailModalProps {
   isOpen: boolean;
@@ -727,7 +726,7 @@ function LpDetailModal({ isOpen, onClose, lpid }: LpDetailModalProps) {
   );
 }
 
-// ... (Modal styles)
+// 모달
 const modalOverlayStyle: React.CSSProperties = {
   position: 'fixed',
   top: 0,

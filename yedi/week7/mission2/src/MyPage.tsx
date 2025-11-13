@@ -1,3 +1,4 @@
+// src/MyPage.tsx
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useState, useEffect } from 'react';
@@ -5,8 +6,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useUpdateUser } from './hooks/useUpdateUser';
-import { useLogout } from './hooks/useLogout'; 
-import { useDeleteUser } from './hooks/useDeleteUser'; 
+import { useLogout } from './hooks/useLogout';
+import { useDeleteUser } from './hooks/useDeleteUser';
 
 const profileSchema = z.object({
   name: z.string().min(1, '닉네임을 입력해주세요.'),
@@ -19,7 +20,7 @@ function MyPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const updateUserMutation = useUpdateUser();
-  const logoutMutation = useLogout(); 
+  const logoutMutation = useLogout();
   const deleteUserMutation = useDeleteUser();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -41,10 +42,10 @@ function MyPage() {
       reset({
         name: user.name || '',
         avatar: user.avatar || '',
-        bio: user.bio || '', 
+        bio: user.bio || '',
       });
     }
-  }, [user, reset, isEditing]); // isEditing 추가 (취소 시 원복)
+  }, [user, reset, isEditing]); 
 
   const handleLogout = () => {
     // useMutation 훅 사용
@@ -60,7 +61,7 @@ function MyPage() {
   };
 
   const onSubmit = (data: ProfileFormValues) => {
-    // bio 필드도 함께 전송
+    // bio 필드 전송
     updateUserMutation.mutate(
       { name: data.name, avatar: data.avatar || undefined, bio: data.bio },
       {
@@ -73,53 +74,14 @@ function MyPage() {
 
   if (!user) {
     return (
-      <div style={pageStyle}>
-        <h1>사용자 정보 로딩 중...</h1>
-      </div>
+      <h1>사용자 정보 로딩 중...</h1>
     );
   }
 
   const accountType = user.email ? '일반 계정' : '구글 계정';
 
   return (
-    <div style={pageStyle}>
-      {/* 상단 헤더 */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '30px',
-        }}
-      >
-        <h1
-          onClick={() => navigate('/')}
-          style={{
-            color: '#FF4B8C',
-            fontSize: '24px',
-            margin: 0,
-            fontWeight: 'bold',
-            cursor: 'pointer',
-          }}
-        >
-          마이페이지
-        </h1>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: 'transparent',
-            border: '1px solid #666',
-            borderRadius: '4px',
-            color: '#fff',
-            fontSize: '14px',
-            cursor: 'pointer',
-          }}
-        >
-          홈화면으로 돌아가기
-        </button>
-      </div>
-
+    <>
       <div style={profileContainerStyle}>
         <div style={avatarContainerStyle}>
           <img
@@ -205,7 +167,7 @@ function MyPage() {
               <span style={labelStyle}>닉네임</span>
               <span style={valueStyle}>{user.name}</span>
             </div>
-            {/*  Bio 표시 */}
+            {/* Bio 표시 */}
             <div style={infoRowStyle}>
               <span style={labelStyle}>Bio</span>
               <span style={valueStyle}>{user.bio || '(소개 없음)'}</span>
@@ -250,7 +212,7 @@ function MyPage() {
         )}
       </div>
 
-      {/*  회원 탈퇴 확인 모달  */}
+      {/* 회원 탈퇴 확인 모달  */}
       {showDeleteConfirm && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
@@ -286,18 +248,9 @@ function MyPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
-
-// 기존 스타일
-const pageStyle: React.CSSProperties = {
-  padding: '40px',
-  color: 'white',
-  background: '#111',
-  minHeight: '100vh',
-  boxSizing: 'border-box',
-};
 
 const profileContainerStyle: React.CSSProperties = {
   maxWidth: '600px',

@@ -6,12 +6,13 @@ import Signup from './Signup';
 import MyPage from './MyPage';
 import ProtectedLayout from './components/ProtectedLayout';
 import GoogleCallback from './pages/GoogleCallback';
+import SharedLayout from './components/SharedLayout'; // 1. SharedLayout 임포트
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* 2. 레이아웃이 없는 독립 페이지들 */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route
@@ -19,8 +20,12 @@ function App() {
           element={<GoogleCallback />}
         />
 
-        <Route element={<ProtectedLayout />}>
-          <Route path="/my-page" element={<MyPage />} />
+        {/* 3. 공통 레이아웃(SharedLayout)을 사용하는 페이지들 */}
+        <Route element={<SharedLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route element={<ProtectedLayout />}>
+            <Route path="/my-page" element={<MyPage />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
