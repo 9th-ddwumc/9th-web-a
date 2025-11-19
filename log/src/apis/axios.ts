@@ -1,4 +1,4 @@
-// apis/axios.ts - Improved Version
+// apis/axios.ts
 import axios, { type InternalAxiosRequestConfig, type AxiosError } from "axios";
 import { LOCAL_STORAGE_KEY } from "../constants/key";
 
@@ -173,9 +173,10 @@ axiosInstance.interceptors.response.use(
         }
 
         // Handle other HTTP errors
-        const errorMessage = error.response?.data?.message || 
-                            error.message || 
-                            '알 수 없는 오류가 발생했습니다.';
+        // 수정된 부분: data를 객체 형태로 단언하여 message 속성 접근 허용
+        const errorMessage = (error.response?.data as { message?: string })?.message || 
+                             error.message || 
+                             '알 수 없는 오류가 발생했습니다.';
         
         return Promise.reject(Object.assign(error, { 
             message: errorMessage 
