@@ -4,7 +4,7 @@ import useForm from "../hooks/useForm";
 import { validateSignin, type UserSignInformation } from "../utils/validate";
 import { useAuth } from "../context/AuthContext";
 import { useLoginMutation } from "../hooks/mutations/useAuthMutations";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const LoginPage = () => {
     const { accessToken } = useAuth();
@@ -14,17 +14,7 @@ const LoginPage = () => {
     
     const from = (location.state as any)?.from || '/';
     
-    // ✅ useLoginMutation 호출 시 from 경로 전달 (라우팅 경로 지정)
     const loginMutation = useLoginMutation(from); 
-    
-    // ❌ 충돌을 일으키던 useEffect 제거: 라우팅 로직은 useLoginMutation에 위임합니다.
-    /*
-    useEffect(() => {
-        if (accessToken) {
-            navigate(from, { replace: true });
-        }
-    }, [accessToken, navigate, from]);
-    */
      
     const { values, errors, touched, getInputProps } = useForm<UserSignInformation>({
         initialValues: {
@@ -35,7 +25,6 @@ const LoginPage = () => {
     });
 
     const handleSubmit = async () => {
-        // useForm의 values와 errors를 사용하여 유효성 검사 및 제출 방지
         const formErrors = validateSignin(values);
         if (Object.values(formErrors).some(error => error.length > 0)) {
             return;
@@ -46,7 +35,6 @@ const LoginPage = () => {
         setErrorMessage('');
         
         try {
-            // ✅ useLoginMutation을 호출하여 로그인 및 성공 시 from 경로로 리다이렉션
             await loginMutation.mutateAsync(values); 
         } catch (error: any) {
             setErrorMessage(error.message || '로그인에 실패했습니다.');
@@ -57,9 +45,10 @@ const LoginPage = () => {
         navigate(-1);
     };
 
+    // ✅ 구글 로그인 - prompt=select_account 추가로 계정 선택 화면 표시
     const handleGoogleLogin = () => {
         sessionStorage.setItem('loginRedirect', from);
-        window.location.href = import.meta.env.VITE_SERVER_API_URL + 'v1/auth/google/login';
+        window.location.href = import.meta.env.VITE_SERVER_API_URL + 'v1/auth/google/login?prompt=select_account';
     };
 
     const isDisabled = 

@@ -14,8 +14,7 @@ const MyPage = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState('');
     const [bio, setBio] = useState('');
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [avatarUrl, setAvatarUrl] = useState('');
     
     const { data: userInfo, isPending, isError, refetch } = useGetMyInfo(!!accessToken);
     const updateProfileMutation = useUpdateProfileMutation();
@@ -25,54 +24,31 @@ const MyPage = () => {
         if (userInfo) {
             setName(userInfo.name || '');
             setBio(userInfo.bio || '');
-            setAvatarFile(null); 
-            setPreviewUrl(userInfo.avatar || null); 
+            setAvatarUrl(userInfo.avatar || '');
             setIsEditing(true);
         }
     };
 
-    // 파일 선택
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setAvatarFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewUrl(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+    // 프로필 저장
+    const handleSaveProfile = () => {
+        if (!name.trim()) {
+            alert('이름을 입력해주세요.');
+            return;
         }
+
+        const updateData: RequestUserUpdateDto = {
+            name: name.trim(),
+            bio: bio.trim() || null,
+            avatar: avatarUrl.trim() || null,
+        };
+
+        updateProfileMutation.mutate(updateData, {
+            onSuccess: () => {
+                setIsEditing(false);
+                refetch(); // ✅ 프로필 정보 다시 불러오기
+            },
+        });
     };
-
-    // src/pages/MyPage.tsx 중 handleSaveProfile 함수만 수정
-
-// ✅ 프로필 저장
-// src/pages/MyPage.tsx 중 handleSaveProfile 함수만 수정
-
-    // src/pages/MyPage.tsx 중 handleSaveProfile만 수정
-
-const handleSaveProfile = () => {
-    if (!name.trim()) {
-        alert('이름을 입력해주세요.');
-        return;
-    }
-
-    // ✅ 서버 API에 맞는 형식으로 전송
-    const updateData: RequestUserUpdateDto = {
-        name: name.trim(),
-        bio: bio.trim() || null,
-        avatar: null, // 이미지 업로드는 별도 API 필요
-    };
-
-    console.log('Sending update data:', updateData);
-
-    updateProfileMutation.mutate(updateData, {
-        onSuccess: () => {
-            setIsEditing(false);
-            setAvatarFile(null);
-        },
-    });
-};
 
     if (isPending) {
         return <Loading message="프로필 정보를 불러오는 중..." />;
@@ -90,114 +66,136 @@ const handleSaveProfile = () => {
     }
     
     return (
-        <div className="min-h-screen bg-black py-8 px-4"> 
-            <div className="max-w-2xl mx-auto">
-                <div className="bg-gray-900 rounded-lg shadow-2xl overflow-hidden border border-gray-800"> 
+        <div className="min-h-screen bg-black py-12 px-4">
+            <div className="max-w-3xl mx-auto">
+                <div className="bg-gray-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-800">
                     {/* 헤더 */}
-                    <div className="bg-gray-800 px-6 py-4 flex items-center justify-between border-b border-gray-700"> 
-                        <h1 className="text-xl font-semibold text-white">프로필</h1>
+                    <div className="bg-gradient-to-r from-pink-600 to-pink-500 px-8 py-6 flex items-center justify-between">
+                        <h1 className="text-2xl font-bold text-white">내 프로필</h1>
                         {!isEditing && (
                             <button
                                 onClick={handleStartEdit}
-                                className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors text-sm font-medium" 
+                                className="px-6 py-2 bg-white text-pink-600 rounded-lg hover:bg-gray-100 transition-colors text-sm font-semibold flex items-center gap-2"
                             >
-                                ⚙️ 설정
+                                <span>✏️</span>
+                                <span>편집</span>
                             </button>
                         )}
                     </div>
                     
                     {/* 프로필 정보 */}
-                    <div className="p-6">
+                    <div className="p-8">
                         {!isEditing ? (
                             // 보기 모드
-                            <div className="flex items-start gap-6">
-                                <div className="flex-shrink-0">
+                            <div className="flex flex-col items-center">
+                                {/* 프로필 사진 */}
+                                <div className="mb-6">
                                     {userInfo.avatar ? (
                                         <img 
                                             src={userInfo.avatar} 
                                             alt="프로필 사진" 
-                                            className="w-24 h-24 rounded-full object-cover border-2 border-pink-500" 
+                                            className="w-32 h-32 rounded-full object-cover border-4 border-pink-500 shadow-lg"
                                         />
                                     ) : (
-                                        <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center border-2 border-gray-600">
-                                            <span className="text-3xl font-bold text-white">
+                                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center border-4 border-pink-500 shadow-lg">
+                                            <span className="text-5xl font-bold text-white">
                                                 {userInfo.name?.charAt(0).toUpperCase() || 'U'}
                                             </span>
                                         </div>
                                     )}
                                 </div>
                                 
-                                <div className="flex-1 space-y-4 text-gray-300"> 
-                                    <div>
-                                        <label className="text-sm text-gray-500 font-medium">ID (이메일)</label>
-                                        <p className="text-lg text-white mt-1">{userInfo.email}</p>
+                                <div className="w-full max-w-md space-y-6">
+                                    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                                        <label className="text-sm text-pink-400 font-semibold uppercase tracking-wide">이메일</label>
+                                        <p className="text-xl text-white mt-2">{userInfo.email}</p>
                                     </div>
                                     
-                                    <div>
-                                        <label className="text-sm text-gray-500 font-medium">이름</label>
-                                        <p className="text-lg text-white mt-1">{userInfo.name}</p>
+                                    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                                        <label className="text-sm text-pink-400 font-semibold uppercase tracking-wide">이름</label>
+                                        <p className="text-xl text-white mt-2">{userInfo.name}</p>
                                     </div>
                                     
-                                    <div>
-                                        <label className="text-sm text-gray-500 font-medium">소개</label>
-                                        <p className="text-lg text-white mt-1">{userInfo.bio || '소개가 없습니다.'}</p>
+                                    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                                        <label className="text-sm text-pink-400 font-semibold uppercase tracking-wide">소개</label>
+                                        <p className="text-lg text-gray-300 mt-2">{userInfo.bio || '소개가 없습니다.'}</p>
                                     </div>
                                     
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        <label className="text-sm text-gray-500 font-medium">계정 상태</label>
-                                        <p className="text-lg text-white">로그인</p>
+                                    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex items-center gap-3">
+                                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                        <span className="text-lg text-white font-medium">활성 상태</span>
                                     </div>
                                 </div>
+                                
+                                {/* 액션 버튼 */}
+                                <button 
+                                    className="w-full max-w-md mt-8 bg-pink-500 text-white rounded-xl py-4 font-semibold text-lg hover:bg-pink-600 transition-colors shadow-lg"
+                                    onClick={() => navigate('/')}
+                                >
+                                    홈으로 돌아가기
+                                </button>
                             </div>
                         ) : (
                             // 수정 모드
-                            <div className="space-y-6">
-                                {/* 프로필 사진 */}
+                            <div className="max-w-md mx-auto space-y-6">
+                                {/* 프로필 사진 미리보기 */}
                                 <div className="flex flex-col items-center gap-4">
-                                    <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-700 border-2 border-pink-500">
-                                        {previewUrl ? (
-                                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-800 border-4 border-pink-500 shadow-lg">
+                                        {avatarUrl ? (
+                                            <img 
+                                                src={avatarUrl} 
+                                                alt="Preview" 
+                                                className="w-full h-full object-cover"
+                                                onError={() => setAvatarUrl('')}
+                                            />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <span className="text-4xl font-bold text-white">
+                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-500 to-pink-600">
+                                                <span className="text-5xl font-bold text-white">
                                                     {name.charAt(0).toUpperCase() || 'U'}
                                                 </span>
                                             </div>
                                         )}
                                     </div>
+                                </div>
+
+                                {/* 프로필 사진 URL */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-pink-400 mb-2 uppercase tracking-wide">
+                                        프로필 사진 URL
+                                    </label>
                                     <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleFileChange}
-                                        className="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-pink-500 file:text-white file:cursor-pointer hover:file:bg-pink-600" 
+                                        type="url"
+                                        value={avatarUrl}
+                                        onChange={(e) => setAvatarUrl(e.target.value)}
+                                        className="w-full px-4 py-3 border border-gray-700 rounded-lg focus:outline-none focus:border-pink-500 bg-gray-800 text-white transition-colors"
+                                        placeholder="https://example.com/avatar.jpg"
                                     />
-                                    <p className="text-xs text-gray-500">프로필 사진 (선택사항)</p>
+                                    <p className="text-xs text-gray-500 mt-2">이미지 URL을 입력하세요 (선택사항)</p>
                                 </div>
 
                                 {/* 이름 */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    <label className="block text-sm font-semibold text-pink-400 mb-2 uppercase tracking-wide">
                                         이름 <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:border-pink-500 bg-gray-800 text-white" 
+                                        className="w-full px-4 py-3 border border-gray-700 rounded-lg focus:outline-none focus:border-pink-500 bg-gray-800 text-white transition-colors"
                                         placeholder="이름을 입력하세요"
                                     />
                                 </div>
 
                                 {/* Bio */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                                        소개 (선택사항)
+                                    <label className="block text-sm font-semibold text-pink-400 mb-2 uppercase tracking-wide">
+                                        소개
                                     </label>
                                     <textarea
                                         value={bio}
                                         onChange={(e) => setBio(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:border-pink-500 resize-none bg-gray-800 text-white" 
+                                        className="w-full px-4 py-3 border border-gray-700 rounded-lg focus:outline-none focus:border-pink-500 resize-none bg-gray-800 text-white transition-colors"
                                         placeholder="자기소개를 입력하세요"
                                         rows={4}
                                     />
@@ -209,10 +207,9 @@ const handleSaveProfile = () => {
                                         type="button"
                                         onClick={() => {
                                             setIsEditing(false);
-                                            setAvatarFile(null);
-                                            setPreviewUrl(null);
+                                            setAvatarUrl('');
                                         }}
-                                        className="flex-1 px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium" 
+                                        className="flex-1 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold border border-gray-700"
                                     >
                                         취소
                                     </button>
@@ -220,23 +217,11 @@ const handleSaveProfile = () => {
                                         type="button"
                                         onClick={handleSaveProfile}
                                         disabled={updateProfileMutation.isPending || !name.trim()}
-                                        className="flex-1 px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors font-medium disabled:bg-gray-700 disabled:cursor-not-allowed" 
+                                        className="flex-1 px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors font-semibold disabled:bg-gray-700 disabled:cursor-not-allowed shadow-lg"
                                     >
                                         {updateProfileMutation.isPending ? '저장 중...' : '저장'}
                                     </button>
                                 </div>
-                            </div>
-                        )}
-
-                        {/* 액션 버튼들 (보기 모드에만 표시) */}
-                        {!isEditing && (
-                            <div className="mt-8 pt-6 border-t border-gray-800 flex flex-col gap-3"> 
-                                <button 
-                                    className="w-full bg-cyan-400 text-black rounded-lg py-3 font-medium hover:bg-cyan-300 transition-colors" 
-                                    onClick={() => navigate('/')}
-                                >
-                                    홈으로
-                                </button>
                             </div>
                         )}
                     </div>

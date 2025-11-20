@@ -7,14 +7,14 @@ import { useLogoutMutation } from "../hooks/mutations/useAuthMutations";
 
 interface NavbarProps {
     onMenuClick: () => void;
+    // ✅ 검색 토글 상태 및 핸들러 props 추가
+    isSearchOpen: boolean;
+    onSearchToggle: () => void;
 }
 
-const Navbar = ({ onMenuClick }: NavbarProps) => {
+const Navbar = ({ onMenuClick, isSearchOpen, onSearchToggle }: NavbarProps) => {
     const { accessToken } = useAuth();
-    
-    // ✅ useGetMyInfo가 쿼리 캐시를 구독하므로 자동으로 업데이트됨
     const { data: userInfo } = useGetMyInfo(!!accessToken);
-    
     const logoutMutation = useLogoutMutation();
     
     const handleLogout = () => {
@@ -24,16 +24,16 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
     };
     
     return (
-        <nav className="bg-black border-b border-gray-800 sticky top-0 z-50">
-            <div className="max-w-[1920px] mx-auto px-4 h-16 flex items-center justify-between">
+        <nav className="bg-black border-b border-gray-800 sticky top-0 z-50 h-16">
+            <div className="w-full px-4 h-full flex items-center justify-between max-w-[1920px] mx-auto">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onMenuClick}
-                        className="lg:hidden p-2 hover:bg-gray-800 rounded text-white"
+                        className="p-2 hover:bg-gray-800 rounded text-white transition-colors"
                         aria-label="메뉴"
                     >
-                        <svg width="24" height="24" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                            <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M7.95 11.95h32m-32 12h32m-32 12h32"/>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                     </button>
                     
@@ -43,13 +43,22 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <Link 
-                        to="/search"
-                        className="text-xl p-2 hover:bg-gray-800 rounded transition-colors text-white"
-                        aria-label="검색"
+                    {/* ✅ 검색 토글 버튼 (돋보기 <-> 닫기 아이콘 전환) */}
+                    <button 
+                        onClick={onSearchToggle}
+                        className="text-xl p-2 hover:bg-gray-800 rounded transition-colors text-white w-10 h-10 flex items-center justify-center"
+                        aria-label={isSearchOpen ? "검색 닫기" : "검색 열기"}
                     >
-                        🔍
-                    </Link>
+                        {isSearchOpen ? (
+                            // 닫기(X) 아이콘
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        ) : (
+                            // 돋보기 아이콘
+                            <span className="text-xl">🔍</span>
+                        )}
+                    </button>
 
                     {!accessToken ? (
                         <>
@@ -68,7 +77,6 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                         </>
                     ) : (
                         <div className="flex items-center gap-4">
-                            {/* ✅ userInfo.name이 변경되면 즉시 반영됨 */}
                             <span className="text-gray-300 hidden sm:block text-sm">
                                 {userInfo?.name || '사용자'}님 반갑습니다.
                             </span>

@@ -28,9 +28,15 @@ export const deleteLp = async (lpId: string): Promise<CommonResponse> => {
   return data;
 };
 
-// ✅ 좋아요 API - POST로 토글 처리
+// ✅ 좋아요 API - POST로 토글 처리 (등록)
 export const postLpLike = async (lpId: string): Promise<CommonResponse> => {
     const { data } = await axiosInstance.post(`/v1/lps/${lpId}/likes`);
+    return data;
+};
+
+// ✅ 좋아요 취소 API 추가 (DELETE)
+export const deleteLpLike = async (lpId: string): Promise<CommonResponse> => {
+    const { data } = await axiosInstance.delete(`/v1/lps/${lpId}/likes`);
     return data;
 };
 
