@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useGetInfiniteLpList from '../hooks/queries/useGetInfiniteLpList';
+import useThrottle from '../hooks/useThrottle';
 import { ErrorDisplay } from '../component/LoadingError';
 import { LpCardSkeletonGrid } from '../component/skeletonUi';
 
@@ -19,8 +20,6 @@ const MainPage = () => {
     const [order, setOrder] = useState<'asc' | 'desc'>('desc');
     const observerTarget = useRef<HTMLDivElement>(null);
     
-    // ✅ 검색어 상태(searchQuery) 제거 -> 홈에서는 전체 목록만 조회
-    
     const { 
         data, 
         isLoading,
@@ -31,21 +30,31 @@ const MainPage = () => {
         hasNextPage,
         isFetchingNextPage,
     } = useGetInfiniteLpList({ 
-        search: '', // 검색어 없음
+        search: '', 
         order, 
         limit: 20 
     });
 
+    // ✅ 스로틀링된 데이터 요청 함수 (1초에 최대 1번만 실행)
+    const throttledFetch = useThrottle(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            console.log('✅ Throttled fetch executed (1s interval)');
+            fetchNextPage();
+        }
+    }, 1000); // 1000ms = 1초
+
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    fetchNextPage();
+                // ✅ 화면 바닥에 닿으면(isIntersecting) 즉시 스로틀된 함수 호출
+                // 스로틀링 덕분에 여러 번 감지되어도 1초에 1번만 실제 요청이 나감
+                if (entries[0].isIntersecting) {
+                    throttledFetch();
                 }
             },
             { 
-                threshold: 0.1,
-                rootMargin: '100px'
+                threshold: 0.5, // 50% 정도 보였을 때 미리 감지
+                rootMargin: '100px' // 바닥보다 100px 위에서 미리 감지하여 자연스럽게 로딩
             }
         );
 
@@ -59,7 +68,7 @@ const MainPage = () => {
                 observer.unobserve(currentTarget);
             }
         };
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    }, [throttledFetch]); // throttledFetch가 변경될 때만 재실행
 
     const handleOrderChange = (newOrder: 'asc' | 'desc') => {
         setOrder(newOrder);
@@ -99,9 +108,6 @@ const MainPage = () => {
 
     return (
         <div className="w-full px-6 py-6">
-            {/* ✅ 검색바(form) 제거됨 */}
-
-            {/* 헤더 및 정렬 버튼 */}
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-white">LP 목록</h1>
                 
@@ -131,7 +137,6 @@ const MainPage = () => {
                 </div>
             </div>
 
-            {/* LP 그리드 */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                 {allLps.length > 0 ? (
                     allLps.map((lp: LpItem) => (

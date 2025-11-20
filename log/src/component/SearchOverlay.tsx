@@ -1,9 +1,9 @@
 // src/component/SearchOverlay.tsx
-
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useGetInfiniteLpList from '../hooks/queries/useGetInfiniteLpList';
 import useDebounce from '../hooks/useDebounce';
+import useThrottle from '../hooks/useThrottle';
 import { ErrorDisplay } from './LoadingError';
 import { LpCardSkeletonGrid } from './skeletonUi';
 
@@ -18,12 +18,10 @@ interface LpItem {
   likes: any[];
 }
 
-// ✅ Props 인터페이스 정의
 interface SearchOverlayProps {
-    isSidebarOpen: boolean;
+    isSidebarOpen?: boolean;
 }
 
-// ✅ isSidebarOpen prop 받기
 const SearchOverlay = ({ isSidebarOpen }: SearchOverlayProps) => {
     const navigate = useNavigate();
     
@@ -86,14 +84,21 @@ const SearchOverlay = ({ isSidebarOpen }: SearchOverlayProps) => {
         localStorage.removeItem(RECENT_SEARCH_KEY);
     };
 
+    // ✅ Throttled fetch for Search
+    const throttledFetch = useThrottle(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, 1000);
+
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    fetchNextPage();
+                if (entries[0].isIntersecting) {
+                    throttledFetch();
                 }
             },
-            { threshold: 0.1, rootMargin: '100px' }
+            { threshold: 0.5, rootMargin: '100px' }
         );
 
         const currentTarget = observerTarget.current;
@@ -106,7 +111,7 @@ const SearchOverlay = ({ isSidebarOpen }: SearchOverlayProps) => {
                 observer.unobserve(currentTarget);
             }
         };
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    }, [throttledFetch]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -131,8 +136,6 @@ const SearchOverlay = ({ isSidebarOpen }: SearchOverlayProps) => {
     };
 
     return (
-        // ✅ 사이드바가 열려있으면(isSidebarOpen === true) 왼쪽 패딩(pl-64)을 추가하여 가려짐 방지
-        // lg:pl-64는 데스크탑(1024px 이상)에서만 적용됩니다.
         <div 
             className={`
                 fixed inset-0 top-16 z-30 bg-black overflow-y-auto 
