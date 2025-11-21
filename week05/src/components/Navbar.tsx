@@ -47,7 +47,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
 
     return (
         // 💡 디자인에 맞춰 배경을 검정(#000)으로, 높이를 고정(h-16), z-index 설정
-        <header className="flex justify-between items-center px-5 py-3 h-16 bg-[#212121]">
+        <header className="fixed top-0 w-full z-50 flex justify-between items-center px-5 py-3 h-16 bg-[#212121]">
                 {/* 1. 왼쪽 그룹: 햄버거 버튼 + 로고 */}
                 <div className="flex items-center gap-4">
                     {/* 햄버거 메뉴 버튼 */}

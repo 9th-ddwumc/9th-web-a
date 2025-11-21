@@ -16,7 +16,7 @@ const Sidebar = () => {
 
     return (
         <nav className="w-60 h-full bg-[#212121] text-white p-4 shadow-lg flex flex-col items-start">
-            <ul className="space-y-2 mt-4">
+            <ul className="space-y-2 mt-4 w-full">
                 {menuItems.map((item) => (
                     <li key={item.path}>
                         <Link 

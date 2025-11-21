@@ -3,39 +3,17 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar'; // Navbar 컴포넌트 경로 확인
 import Sidebar from '../components/Sidebar'; // Sidebar 컴포넌트 경로 확인
-import { useState, useCallback, useEffect } from 'react';
 import Modal from '../components/Modal';
+import { useSidebar } from '../hooks/useSidebar';
 
 const HomeLayout = () => {
-    // 1. 사이드바 상태 관리
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    /// useSidebar 커스텀 훅을 사용하여 상태와 함수를 가져옵니다.
+    const { isSidebarOpen, closeSidebar, toggleSidebar } = useSidebar(); 
 
-    // 2. 사이드바 토글 함수 (Navbar에 전달)
-    // useCallback을 사용하여 불필요한 리렌더링 방지
-    const toggleSidebar = useCallback(() => {
-        setIsSidebarOpen(prev => !prev);
-    }, []);
-
-    // 3. 사이드바 닫기 함수 (오버레이 및 main 클릭 시 사용)
-    const closeSidebar = useCallback(() => {
-        setIsSidebarOpen(false);
-    }, []);
-    
-    // 4. 모바일/데스크톱 해상도 변경 시 사이드바 닫기 처리
-    useEffect(() => {
-        const handleResize = () => {
-            // 창 크기가 768px 이상 (데스크톱)이 되면 사이드바를 닫음
-            if (window.innerWidth >= 768) {
-                // 모바일에서만 열려있던 사이드바를 닫음 (데스크톱 환경에서는 항상 숨김)
-                if (isSidebarOpen) {
-                    setIsSidebarOpen(false);
-                }
-            }
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [isSidebarOpen]); // isSidebarOpen이 변경될 때만 리스너 재등록
+    // 현재 화면 너비가 768px 이상인지 확인하는 함수 (데스크톱 여부 판단)
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+    // 사이드바를 렌더링해야 하는 조건: 모바일에서 열려 있거나, 데스크톱일 경우
+    const shouldRenderSidebar = isSidebarOpen || isDesktop;
 
     return (
         // flex-col: 세로 배치
@@ -48,28 +26,42 @@ const HomeLayout = () => {
             <div className="relative flex flex-row flex-1"> {/* Navbar 높이만큼 상단 패딩 추가 */}
                 
                 {/* 💡 모바일 사이드바 오버레이 (Sidebar가 열려 있고, 768px 미만일 때) */}
-                {isSidebarOpen && window.innerWidth < 768 && (
+                {isSidebarOpen && !isDesktop && (
                     <div
                         onClick={closeSidebar}
                         className="fixed inset-0 bg-black bg-opacity-50 z-40" // z-40은 Sidebar(z-50)보다 낮아야 함
                     />
                 )}
                 
-                {/* 💡 Sidebar 컴포넌트 */}
-                {isSidebarOpen && (
+                {/* 💡 Sidebar 컴포넌트 Wrapper */}
+                {shouldRenderSidebar && ( 
                     <div 
-                        className="fixed top-16 left-0 z-50 h-[calc(100vh-4rem)]" 
+                        className={`
+                        // PC/모바일 관계없이 항상 fixed로 처리하여 애니메이션이 부드럽게 동작하도록 설정
+                        fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] w-60
+                        
+                        transition-transform duration-300 ease-in-out
+                        
+                        // isSidebarOpen 상태에 따라 translate-x 제어
+                        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+                        
+                        `}
                     >
                         <Sidebar />
                     </div>
                 )}
                 
-                {/* 💡 메인 콘텐츠 영역 (Outlet) */}
                 <main
-                    // 모바일에서 사이드바가 열려있을 때 main 클릭 시 사이드바를 닫습니다.
                     onClick={isSidebarOpen ? closeSidebar : undefined}
-                    className={`flex-1 relative z-10 p-4 pt-0 text-white 
-                        ${isSidebarOpen && window.innerWidth < 768 ? 'opacity-50' : ''}`}
+                    className={`
+                        flex-1 relative z-10 p-4 text-white pt-16
+                        
+                        // 사이드바가 열렸을 때 모바일에서만 opacity 적용
+                        ${isSidebarOpen && window.innerWidth < 768 ? 'opacity-50' : ''}
+                        
+                        ${isSidebarOpen ? 'md:ml-60' : 'md:ml-0'} 
+                        transition-all duration-300 ease-in-out
+                    `}
                 >
                     {/* HomeLayout의 자식 라우트 콘텐츠가 렌더링되는 곳 */}
                     <Outlet />
