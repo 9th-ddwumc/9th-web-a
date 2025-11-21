@@ -8,12 +8,13 @@ import LpCardSkeletonList from '../components/LpCard/LpSkeletonList';
 import useGetInfiniteLpList from '../hooks/useGetInfiniteLpList';
 import { useInView } from 'react-intersection-observer';
 import { useDebounce } from '../hooks/useDebounce';
+import useThrottle from '../hooks/useThrottle';
 
 const HomePage = () => {
   const [searchInput, setSearchInput] = useState("");
   const [order, setOrder] = useState<PAGINATION_ORDER_TYPE>(PAGINATION_ORDER_VALUE.DESC);
 
-  const debouncedSearch = useDebounce(searchInput, 3000);
+  const debouncedSearch = useDebounce(searchInput, 500);
 
   const {
     data: lps,
@@ -24,19 +25,34 @@ const HomePage = () => {
     isError,
   } = useGetInfiniteLpList(10, debouncedSearch, order);
 
+  // fetchNextPage를 쓰로틀링한 함수로 감싸기 (3초 제한)
+  const throttledFetchNextPage = useThrottle(() => {
+    if (!isFetching && hasNextPage) {
+      console.log("🔁 fetchNextPage 실행됨:", new Date().toLocaleTimeString());
+      fetchNextPage();
+    }
+  }, 3000);
+
+
   const { ref, inView } = useInView({
     threshold: 0,
   });
 
-  useEffect(() => {
-    if (inView && hasNextPage && !isFetching) {
-      const timer = setTimeout(() => {
-        fetchNextPage();
-      });
+  // useEffect(() => {
+  //   if (inView && hasNextPage && !isFetching) {
+  //     const timer = setTimeout(() => {
+  //       fetchNextPage();
+  //     });
 
-      return () => clearTimeout(timer);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [inView, isFetching, hasNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    if (inView) {
+      throttledFetchNextPage();
     }
-  }, [inView, isFetching, hasNextPage, fetchNextPage]);
+  }, [inView, throttledFetchNextPage]);
 
   if (isPending) return <div>Loading...</div>;
   if (isError) return <div>Error.</div>;
