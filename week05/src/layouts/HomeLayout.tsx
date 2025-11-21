@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar'; // Navbar 컴포넌트 경로 확인
 import Sidebar from '../components/Sidebar'; // Sidebar 컴포넌트 경로 확인
 import { useState, useCallback, useEffect } from 'react';
-import FloatingActionButton from '../components/FloatingActionButton';
+import Modal from '../components/Modal';
 
 const HomeLayout = () => {
     // 1. 사이드바 상태 관리
@@ -75,8 +75,7 @@ const HomeLayout = () => {
                     <Outlet />
                 </main>
             </div>
-
-            <FloatingActionButton />
+            <Modal />
         </div>
     );
 }

@@ -7,11 +7,13 @@ import LpCard from '../components/LpCard/LpCard';
 import LpCardSkeletonList from '../components/LpCard/LpSkeletonList';
 import useGetInfiniteLpList from '../hooks/useGetInfiniteLpList';
 import { useInView } from 'react-intersection-observer';
+import { useDebounce } from '../hooks/useDebounce';
 
 const HomePage = () => {
-  const [searchInput, setSearchInput] = useState(""); // 입력 중인 값
-  const [search, setSearch] = useState(""); // 실제 쿼리에 적용될 값
+  const [searchInput, setSearchInput] = useState("");
   const [order, setOrder] = useState<PAGINATION_ORDER_TYPE>(PAGINATION_ORDER_VALUE.DESC);
+
+  const debouncedSearch = useDebounce(searchInput, 3000);
 
   const {
     data: lps,
@@ -20,7 +22,7 @@ const HomePage = () => {
     isPending,
     fetchNextPage,
     isError,
-  } = useGetInfiniteLpList(10, search, order);
+  } = useGetInfiniteLpList(10, debouncedSearch, order);
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -36,17 +38,23 @@ const HomePage = () => {
     }
   }, [inView, isFetching, hasNextPage, fetchNextPage]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearch(searchInput);
-  };
-
   if (isPending) return <div>Loading...</div>;
   if (isError) return <div>Error.</div>;
 
   return (
     <div>
-      {/* 정렬 버튼 */}
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="mt-5 flex justify-center items-center"
+      >
+        <input
+          value={searchInput}
+          placeholder="search"
+          onChange={(e) => setSearchInput(e.target.value)}
+          className="text-white placeholder-white bg-[#212121] border border-gray-600 px-3 py-2 rounded focus:outline-none focus:ring-0"
+        />
+      </form>
+
       <div className="flex justify-end mb-4">
         <button
           onClick={() => setOrder(PAGINATION_ORDER_VALUE.ASC)}
