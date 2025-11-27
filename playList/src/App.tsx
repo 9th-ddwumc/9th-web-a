@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { calculateTotals, clearCart } from './features/cart/cartSlice';
+import { calculateTotals } from './features/cart/cartSlice'; // clearCart 제거
+import { openModal } from './features/modal/modalSlice'; // openModal 임포트
 import { type RootState } from './store/store';
 import CartItem from './components/CartItem';
+import Modal from './components/Modal'; // Modal 컴포넌트 임포트
 
 function App() {
   const dispatch = useDispatch();
   const { cartItems, total, amount } = useSelector((state: RootState) => state.cart);
+  const { isOpen } = useSelector((state: RootState) => state.modal); // modal 상태 가져오기
 
   useEffect(() => {
     dispatch(calculateTotals());
@@ -14,6 +17,9 @@ function App() {
 
   return (
     <main className="bg-slate-50 min-h-screen pb-20">
+      {/* 1. isOpen 상태에 따라 Modal 컴포넌트 렌더링 */}
+      {isOpen && <Modal />}
+
       {/* Navbar */}
       <nav className="bg-indigo-600 py-4 px-8 text-white mb-10 shadow-lg sticky top-0 z-50">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
@@ -67,7 +73,8 @@ function App() {
               <div className="text-center">
                 <button
                   className="btn border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all border-2 px-6 py-2 rounded-md font-bold uppercase tracking-widest text-sm"
-                  onClick={() => dispatch(clearCart())}
+                  // 2. '장바구니 비우기' 클릭 시 openModal()을 dispatch
+                  onClick={() => dispatch(openModal())}
                 >
                   장바구니 비우기
                 </button>
