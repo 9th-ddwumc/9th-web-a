@@ -1,3 +1,5 @@
+// src/pages/MoviePage.tsx (수정)
+
 import { useEffect } from 'react'
 import { useState } from 'react';
 import type { MovieResponse, Movie } from '../types/Movie';
@@ -5,6 +7,8 @@ import MovieCard from '../components/MovieCard';
 import axios from 'axios';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useParams } from 'react-router-dom';
+
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY; // 환경 변수 사용
 
 export default function MoviePage() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -20,10 +24,12 @@ export default function MoviePage() {
       const fetchMovies = async () => {
       setIsPending(true);
         try{
-      const {data} = await axios.get<MovieResponse>(`https://api.themoviedb.org/3/movie/${category}?api_key=0a1275a832b57a2a9fafe501b098a4ca&language=ko-KR&page=${page}`,
+            // URL에서 하드코딩된 api_key를 제거하고, 헤더에 환경 변수를 사용
+            const {data} = await axios.get<MovieResponse>(`https://api.themoviedb.org/3/movie/${category}?language=ko-KR&page=${page}`,
           {
             headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_TMDB_KEY}`
+              // VITE_TMDB_API_KEY를 Bearer 토큰으로 사용
+              Authorization: `Bearer ${TMDB_API_KEY}`
             }
           }
       );
