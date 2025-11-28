@@ -1,24 +1,23 @@
+// src/App.tsx (수정)
+
+import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import HomePage from "./pages/HomePage";
 import MoviePage from "./pages/MoviePage";
-import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import NotFoundPage from "./pages/NotFoundPage";
-import MovieDetailPage from "./pages/MovieDetailPage";
 
 const router = createBrowserRouter ([
   {
     path: '/',
     element: <HomePage/>,
     errorElement: <NotFoundPage/>,
-    children:[
-      {
-        path: 'movies/category/:category',
-        element: <MoviePage/>
-      },
-      {
-        path: 'movies/:movieId',
-        element: <MovieDetailPage/>,
-      }
-    ]
+    // children 배열에서 카테고리 라우트 제거
+    // children:[]
+  },
+  {
+    // ⭐️ 카테고리 라우트를 최상위 레벨로 이동 ⭐️
+    path: '/movies/category/:category',
+    element: <MoviePage/>,
+    errorElement: <NotFoundPage/>,
   }
 ])
 

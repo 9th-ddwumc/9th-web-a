@@ -1,10 +1,10 @@
-// src/api/tmdb.ts (Bearer 토큰 방식으로 수정)
+// src/api/tmdb.ts
 
 import axios from 'axios';
 import type { MovieResponse } from '../types/Movie';
 
 const BASE_URL = 'https://api.themoviedb.org/3';
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY; // Bearer 토큰 값
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 interface SearchParams {
     query: string;
@@ -29,7 +29,6 @@ export async function searchMovies({ query, language, includeAdult, page = 1 }: 
                 page: page,
             },
             headers: {
-                // 모든 API 호출에 Bearer 토큰을 사용
                 Authorization: `Bearer ${API_KEY}`,
                 accept: 'application/json' 
             }
