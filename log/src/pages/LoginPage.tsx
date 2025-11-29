@@ -7,7 +7,7 @@ import { useLoginMutation } from "../hooks/mutations/useAuthMutations";
 import { useState } from "react";
 
 const LoginPage = () => {
-    const { accessToken } = useAuth();
+    // const { accessToken } = useAuth(); // TS6133 오류 해결을 위해 제거
     const navigate = useNavigate();
     const location = useLocation();
     const [errorMessage, setErrorMessage] = useState('');

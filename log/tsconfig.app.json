@@ -7,6 +7,8 @@
     "module": "ESNext",
     "types": ["vite/client"],
     "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "noUnusedLocals": false,
 
     /* Bundler mode */
     "moduleResolution": "bundler",

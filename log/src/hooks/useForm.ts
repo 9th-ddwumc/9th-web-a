@@ -5,9 +5,7 @@ type FieldValues = Record<string, any>;
 
 // UseFormProps 인터페이스 정의
 interface UseFormProps<
-  TFieldValues extends FieldValues = FieldValues,
-  TContext = any,
-  TTransformedValues extends FieldValues | undefined = undefined
+  TFieldValues extends FieldValues = FieldValues
 > {
   initialValues: TFieldValues;
   validate: (values: TFieldValues) => Record<keyof TFieldValues, string>;
@@ -15,10 +13,8 @@ interface UseFormProps<
 
 // useForm 함수 선언 및 구현
 function useForm<
-  TFieldValues extends FieldValues = FieldValues,
-  TContext = any,
-  TTransformedValues extends FieldValues | undefined = undefined
->(props?: UseFormProps<TFieldValues, TContext, TTransformedValues>) {
+  TFieldValues extends FieldValues = FieldValues
+>(props?: UseFormProps<TFieldValues>) {
   // props가 없으면 기본값 사용
   const { initialValues = {} as TFieldValues, validate = (() => ({} as Record<keyof TFieldValues, string>)) } = props || {};
 

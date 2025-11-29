@@ -28,7 +28,7 @@ const LpDetailPage = () => {
     const { accessToken } = useAuth();
     const queryClient = useQueryClient();
 
-    const [commentOrder, setCommentOrder] = useState<'asc' | 'desc'>('desc');
+    const [commentOrder, _setCommentOrder] = useState<'asc' | 'desc'>('desc'); // TS6133 오류 해결을 위해 setCommentOrder를 _setCommentOrder로 변경
     const [newComment, setNewComment] = useState('');
     const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
     const [editingContent, setEditingContent] = useState('');
@@ -314,7 +314,7 @@ const LpDetailPage = () => {
                         {allComments.map((comment: CommentItem) => (
                             <div key={comment.id} className="flex gap-3 p-4 bg-gray-900 rounded-lg items-start text-left">
                                 {/* 프로필 이미지 */}
-                                <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                <div className="w-10 h-10 bg-gray-700 rounded-full flex-shrink-0 overflow-hidden">
                                     {comment.author?.avatar ? (
                                         <img src={comment.author.avatar} alt={comment.author.name} className="w-full h-full object-cover" />
                                     ) : (
