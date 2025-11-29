@@ -1,7 +1,7 @@
 // src/components/PriceBox.tsx
 
 import { useAppSelector, useAppDispatch } from "../hooks/useCustomRedux";
-import { clearCart } from "../slices/cartSlice";
+import { openModal } from "../slices/modalSlice";
 
 const PriceBox = () => {
   // 전역 상태에서 총 가격 (total) 가져오기
@@ -10,7 +10,7 @@ const PriceBox = () => {
 
   // 장바구니 초기화 (비우기)
   const handleInitializeCart = () => {
-    dispatch(clearCart());
+    dispatch(openModal());
   };
 
   return (

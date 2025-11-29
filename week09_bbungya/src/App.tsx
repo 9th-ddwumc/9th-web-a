@@ -4,6 +4,7 @@ import CartList from './components/CartList'
 import Navbar from './components/Navbar'
 import PriceBox from './components/PriceBox'
 import { store } from './store/store'
+import Modal from './components/Modal'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Navbar />
       <CartList />
       <PriceBox />
+      <Modal />
     </Provider>
   )
 }

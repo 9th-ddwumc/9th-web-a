@@ -2,6 +2,7 @@
 
 import { configureStore } from "@reduxjs/toolkit";
 import cartReducer from "../slices/cartSlice";
+import modalReducer from '../slices/modalSlice';
 
 // 스토어 생성 함수 (싱글톤 패턴)
 const createStore = () => {
@@ -9,6 +10,7 @@ const createStore = () => {
     reducer: {
       // 슬라이스 이름과 리듀서 연결
       cart: cartReducer, 
+      modal: modalReducer,
     },
   });
   return store;
