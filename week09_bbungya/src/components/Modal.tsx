@@ -1,29 +1,33 @@
 // src/components/Modal.tsx
 
 import React from 'react';
-import { useAppDispatch, useAppSelector } from '../hooks/useCustomRedux';
-import { closeModal } from '../slices/modalSlice'; // modalSlice 액션
-import { clearCart } from '../slices/cartSlice'; // cartSlice 액션 (장바구니 비우기 재활용)
+// import { useAppDispatch, useAppSelector } from '../hooks/useCustomRedux';
+// import { closeModal } from '../slices/modalSlice'; // modalSlice 액션
+// import { clearCart } from '../slices/cartSlice'; // cartSlice 액션 (장바구니 비우기 재활용)
+import { useModalStore } from '../hooks/useModalStore';
+import { useCartStore } from '../hooks/useCartStore';
 
 const Modal: React.FC = () => {
-  const dispatch = useAppDispatch();
-  // Redux 상태에서 모달의 열림 상태를 구독 (useState 사용 안함)
-  const { isOpen } = useAppSelector((state) => state.modal); 
+  // 1. 모달 상태 및 닫기 액션 구독
+  const { isOpen, closeModal } = useModalStore(); 
+  
+  // 2. 장바구니 초기화 액션 구독
+  const clearCart = useCartStore((state) => state.clearCart);
 
-  // 모달이 닫혀있으면 아무것도 렌더링하지 않음
+  // 모달이 닫혀있으면 렌더링하지 않음 (렌더링 제어)
   if (!isOpen) {
     return null;
   }
 
-  // 아니요 버튼 핸들러: 모달 닫기
+  // "아니요" 버튼 핸들러: 모달만 닫기
   const handleClose = () => {
-    dispatch(closeModal()); 
+    closeModal();
   };
 
-  // 네 버튼 핸들러: 장바구니 비우기 액션 호출 후 모달 닫기
+  // "네" 버튼 핸들러: 장바구니 비우고 모달 닫기
   const handleConfirmClear = () => {
-    dispatch(clearCart()); // 1. 장바구니 비우기
-    dispatch(closeModal()); // 2. 모달 닫기
+    clearCart(); // 장바구니 아이템 모두 삭제 (액션 재활용)
+    closeModal(); // 모달 닫기
   };
 
   return (

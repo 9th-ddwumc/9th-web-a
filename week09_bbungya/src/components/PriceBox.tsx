@@ -1,16 +1,21 @@
 // src/components/PriceBox.tsx
 
-import { useAppSelector, useAppDispatch } from "../hooks/useCustomRedux";
-import { openModal } from "../slices/modalSlice";
+// import { useAppSelector, useAppDispatch } from "../hooks/useCustomRedux";
+import { useCartInfo } from "../hooks/useCartStore";
+import { useModalStore } from "../hooks/useModalStore";
+// import { openModal } from "../slices/modalSlice";
 
 const PriceBox = () => {
+  const openModal = useModalStore((state) => state.openModal);
+
   // 전역 상태에서 총 가격 (total) 가져오기
-  const { total } = useAppSelector((state) => state.cart);
-  const dispatch = useAppDispatch();
+//   const { total } = useAppSelector((state) => state.cart);
+//   const dispatch = useAppDispatch();
+  const { total } = useCartInfo();
 
   // 장바구니 초기화 (비우기)
   const handleInitializeCart = () => {
-    dispatch(openModal());
+    openModal();
   };
 
   return (

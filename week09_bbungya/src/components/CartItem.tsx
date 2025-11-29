@@ -1,30 +1,49 @@
 // src/components/CartItem.tsx
-import { useAppDispatch } from "../hooks/useCustomRedux";
-import { decrease, increase, removeItem } from "../slices/cartSlice";
+import { useCartStore } from "../hooks/useCartStore";
+// import { useAppDispatch } from "../hooks/useCustomRedux";
+// import { decrease, increase, removeItem } from "../slices/cartSlice";
 import type { LP } from "../types/cart";
 
 interface CartItemProps {
   lp: LP;
 }
 
-const CartItem = ({ lp }: CartItemProps) => {
-  const dispatch = useAppDispatch();
+// const CartItem = ({ lp }: CartItemProps) => {
+//   const dispatch = useAppDispatch();
+
+//   // 수량 증가
+//   const handleIncreaseCount = () => {
+//     dispatch(increase({ id: lp.id }));
+//   };
+
+//   // 수량 감소 (1일 때 제거 로직 포함)
+//   const handleDecreaseCount = () => {
+//     // 수량이 1일 경우, 감소 대신 제거 액션 디스패치 [05:20:05]
+//     if (lp.amount === 1) {
+//       dispatch(removeItem({ id: lp.id }));
+//       return;
+//     }
+    
+//     // 수량이 1보다 클 경우 감소
+//     dispatch(decrease({ id: lp.id }));
+//   };
+const CartItem: React.FC<CartItemProps> = ({ lp }) => {
+  const { increase, decrease, removeItem } = useCartStore.getState();
 
   // 수량 증가
   const handleIncreaseCount = () => {
-    dispatch(increase({ id: lp.id }));
+    increase(lp.id);
   };
 
-  // 수량 감소 (1일 때 제거 로직 포함)
+  // 수량 감소 (제거 로직은 decrease 액션 내에서 처리됨)
   const handleDecreaseCount = () => {
-    // 수량이 1일 경우, 감소 대신 제거 액션 디스패치 [05:20:05]
+    decrease(lp.id);
+
+    // 1이면 빠지도록
     if (lp.amount === 1) {
-      dispatch(removeItem({ id: lp.id }));
+      removeItem(lp.id);
       return;
     }
-    
-    // 수량이 1보다 클 경우 감소
-    dispatch(decrease({ id: lp.id }));
   };
 
   return (
