@@ -89,3 +89,5 @@ export const useCartInfo = () =>
       total: state.total,
     }))
   );
+
+  useCartStore.getState().calculateTotal();
