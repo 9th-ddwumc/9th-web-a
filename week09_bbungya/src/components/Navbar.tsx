@@ -1,12 +1,15 @@
 // src/components/Navbar.tsx
 
 import { FaShoppingCart } from "react-icons/fa"; // 아이콘
-import { useAppSelector } from "../hooks/useCustomRedux";
+// import { useAppSelector } from "../hooks/useCustomRedux";
+import { useCartInfo } from "../hooks/useCartStore";
 
 const Navbar = () => {
   // 전역 상태에서 총 수량 (amount) 가져오기
-  const { amount } = useAppSelector((state) => state.cart);
+  // const { amount } = useAppSelector((state) => state.cart);
 
+  const { amount } = useCartInfo();
+  
   const handleLogoClick = () => {
     window.location.href = "/";
   };

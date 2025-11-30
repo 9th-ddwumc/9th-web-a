@@ -1,3 +1,4 @@
+/* eslint-disable no-irregular-whitespace */
 // src/stores/useCartStore.ts
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
@@ -12,20 +13,45 @@ interface CartState {
   total: number;
 }
 
+const getInitialTotals = (items: LP[]) => {
+  let initialAmount = 0;
+  let initialTotal = 0;
+
+  items.forEach((item) => {
+    initialAmount += item.amount;
+    initialTotal += item.amount * item.price;
+  });
+  return { initialAmount, initialTotal };
+};
+
+const { initialAmount, initialTotal } = getInitialTotals(initialCartItems);
+
 interface CartActions {
   increase: (id: string) => void;
   decrease: (id: string) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
-  calculateTotal: () => void;
 }
+
+const calculateTotals = (state: CartState) => {
+  let amount = 0;
+  let total = 0;
+
+  state.cartItems.forEach((item) => {
+    amount += item.amount;
+    total += item.amount * item.price;
+  });
+
+  state.amount = amount;
+  state.total = total;
+};
 
 export const useCartStore = create<CartState & CartActions>()(
   immer((set, get) => ({
     // 초기 상태
     cartItems: initialCartItems,
-    amount: 0,
-    total: 0,
+    amount: initialAmount,
+    total: initialTotal,
 
     // 액션 구현 (Immer 사용으로 불변성 관리 없이 상태 직접 수정)
     increase: (id) =>
@@ -34,49 +60,30 @@ export const useCartStore = create<CartState & CartActions>()(
         if (item) {
           item.amount += 1;
         }
-        get().calculateTotal(); // 상태 변경 후 총액 재계산
+        calculateTotals(state);
       }),
 
     decrease: (id) =>
       set((state) => {
         const item = state.cartItems.find((i) => i.id === id);
         if (item) {
-          // 수량이 1일 경우 제거 로직을 타기 위해 별도 처리
-          if (item.amount === 1) {
-            // Zustand에서는 액션 내에서 다른 액션을 호출하지 않고,
-            // 필터링하여 새로운 배열을 반환하는 것이 일반적입니다.
-            state.cartItems = state.cartItems.filter((i) => i.id !== id);
-          } else {
-            item.amount -= 1;
-          }
+          if (item.amount > 1) { 
+            item.amount -= 1;
+          }
         }
-        get().calculateTotal();
+        calculateTotals(state);
       }),
 
     removeItem: (id) =>
       set((state) => {
         state.cartItems = state.cartItems.filter((i) => i.id !== id);
-        get().calculateTotal();
+        calculateTotals(state);
       }),
 
     clearCart: () =>
       set((state) => {
         state.cartItems = [];
-        get().calculateTotal();
-      }),
-
-    calculateTotal: () =>
-      set((state) => {
-        let newAmount = 0;
-        let newTotal = 0;
-
-        state.cartItems.forEach((item) => {
-          newAmount += item.amount;
-          newTotal += item.amount * item.price;
-        });
-
-        state.amount = newAmount;
-        state.total = newTotal;
+        calculateTotals(state);
       }),
   }))
 );
@@ -89,5 +96,3 @@ export const useCartInfo = () =>
       total: state.total,
     }))
   );
-
-  useCartStore.getState().calculateTotal();

@@ -4,26 +4,11 @@
 // import { useEffect } from "react";
 // import { calculateTotal } from "../slices/cartSlice";
 import CartItem from "./CartItem";
-import { useCartInfo } from "../hooks/useCartStore";
+import { useCartStore } from "../hooks/useCartStore";
 
 const CartList = () => {
-//   const { cartItems } = useAppSelector((state) => state.cart);
-//   const dispatch = useAppDispatch();
 
-//   // cartItems가 변경될 때마다 총액과 수량을 재계산 [05:58:00]
-//   useEffect(() => {
-//     dispatch(calculateTotal()); 
-//   }, [dispatch, cartItems]); // 디펜던시 배열에 cartItems를 추가
-
-//   const { cartItems, calculateTotal } = useCartStore((state) => ({
-//     cartItems: state.cartItems,
-//     calculateTotal: state.calculateTotal,
-//   }));
-
-//   React.useEffect(() => {
-//       calculateTotal();
-//   }, [calculateTotal]);
-    const { cartItems } = useCartInfo();
+  const cartItems = useCartStore(state => state.cartItems);
 
   return (
     <div className="flex flex-col items-center justify-center mt-8 w-full px-4">
