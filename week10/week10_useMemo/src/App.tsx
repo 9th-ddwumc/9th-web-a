@@ -1,12 +1,11 @@
 
 import './App.css'
-import UseCallbackPage from './useCallbackPage'
+import UseMemoPage from './UseMemoPage'
 
 function App() {
   return (
     <div className="App">
-      {/* 최적화 실습 메인 컴포넌트 렌더링 */}
-      <UseCallbackPage />
+      <UseMemoPage />
     </div>
   )
 }
